@@ -27,6 +27,42 @@ NASA feed → SQL article records → recent article list
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
 
+The first implementation uses a hosted PostgreSQL database through Prisma. Set
+`DATABASE_URL`, then run the manual ingestion command to populate the SQL
+corpus. `BACKFILL_DAYS` controls the feed window and `RETENTION_DAYS` controls
+the optional cleanup command. The current NASA feed may not expose 90 days of
+history; that coverage limitation is recorded as an ingestion risk until the
+archive source is confirmed.
+
+Chunking, embeddings, Pinecone, chat, and agent workflows begin only after the
+stored article text has been inspected in a later checkpoint.
+
+### Run Checkpoint 1 locally
+
+After creating a hosted PostgreSQL database, copy `.env.example` to `.env` and
+set `DATABASE_URL`. A root `.env` is used here because both Prisma CLI and
+Next.js load it. Keep it local and never commit it. Then run:
+
+```bash
+npm install
+npx prisma migrate dev --name init
+npm run ingest:nasa
+npm run dev
+```
+
+Open `http://localhost:3000` to view the SQL-backed article list. Run
+`npm run ingest:nasa` a second time to verify unchanged URLs are reported as
+unchanged rather than inserted again. The retention command is intentionally
+manual: run `npm run retention:nasa` only after choosing the desired
+`RETENTION_DAYS` value.
+
+The current article list is the data-foundation screen, not the final product
+experience. The intended MUP interaction is a chat-first NASA briefing screen:
+users can type a question or choose a small set of starter prompts such as
+“Show me the latest NASA news.” Recent/latest prompts will use SQL-backed
+article records; ingestion remains a separate refresh operation rather than a
+hidden side effect of every chat question.
+
 ## Initial boundaries
 
 - NASA news only.

@@ -1,4 +1,4 @@
-# Possible Improvements
+# Possible Improvements - NOT IMPORTANT FOR MVP
 
 Ideas to consider for the capstone after Homework 3. These are proposals, not
 approved implementation work.

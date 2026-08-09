@@ -1,7 +1,6 @@
 # Capstone Working Document
 
-This is a living document for shaping, building, testing, and explaining the
-capstone. Update it after meaningful decisions, experiments, or user feedback.
+This is a living document for shaping, building, testing, and explaining the capstone. Update it after meaningful decisions, experiments, or user feedback.
 
 ## 1. Problem to solve
 

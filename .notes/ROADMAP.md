@@ -7,7 +7,7 @@ ready to demonstrate by Saturday.
 
 This roadmap is for the new NASA repository. The medical RAG repository remains
 a working reference for patterns, lessons, and examples; it should not be
-broadly refactored for the capstone.
+broadly refactored for the capstone. It is visible locally at /Users/ianfleming/Desktop/Ian/parsity_medical_rag. THIS is where I have done my learning, feel free to check here if required for things like Next conventions, agents flow etc. I like the approach this takes in terms of....logging everything and structured data. I want to follow the agentic workflow as much as possible, structured data using Zod (seems to be rather useful). .notes/CAPSTONE_PLAN shows more of the planning and design decisions. +
 
 ## Minimum usable product
 

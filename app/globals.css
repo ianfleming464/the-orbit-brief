@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap");
+:root { --ink:#18212a; --muted:#66717b; --line:#ccd3d4; --paper:#edf0eb; --card:#f8f9f5; --signal:#e45d3d; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); }
+a { color:inherit; }
+.shell { width:min(100% - 40px,1080px); margin:0 auto; padding:72px 0 96px; }
+.masthead { display:grid; grid-template-columns:1fr minmax(240px,360px); gap:24px; align-items:end; padding-bottom:48px; border-bottom:1px solid var(--ink); }
+.masthead h1 { grid-column:1 / -1; margin:18px 0 0; max-width:760px; font:600 clamp(4rem,11vw,8.5rem)/.8 Newsreader,serif; letter-spacing:-.07em; }
+.eyebrow,.article-meta { margin:0; color:var(--signal); font:500 .72rem/1.4 "DM Mono",monospace; letter-spacing:.08em; text-transform:uppercase; }
+.dek { margin:0; color:var(--muted); font:1.1rem/1.35 Newsreader,serif; }
+.briefing { padding-top:52px; }
+.section-heading { display:flex; justify-content:space-between; gap:20px; align-items:baseline; margin-bottom:20px; }
+.section-heading h2 { margin:0; font:500 clamp(2rem,4vw,3.5rem)/1 Newsreader,serif; letter-spacing:-.04em; }
+.article-list { list-style:none; padding:0; margin:0; border-top:1px solid var(--line); }
+.article-card { display:grid; grid-template-columns:1fr auto; gap:28px; align-items:center; padding:24px 0; border-bottom:1px solid var(--line); }
+.article-card h3 { max-width:720px; margin:8px 0 0; font:500 clamp(1.45rem,2.8vw,2.35rem)/1.05 Newsreader,serif; letter-spacing:-.025em; }
+.article-card a { color:var(--ink); font:500 .75rem/1.2 "DM Mono",monospace; text-decoration:none; white-space:nowrap; }
+.article-card a:hover { color:var(--signal); }
+.article-card a:focus-visible { outline:2px solid var(--signal); outline-offset:5px; }
+.notice { padding:28px; background:var(--card); border:1px solid var(--line); font:1.15rem/1.4 Newsreader,serif; }
+.notice p { margin:8px 0 0; color:var(--muted); }
+.notice-error { border-left:4px solid var(--signal); }
+@media (max-width:680px) { .shell{width:min(100% - 28px,1080px);padding-top:40px}.masthead{display:block}.masthead h1{margin:30px 0 24px;font-size:clamp(4rem,22vw,7rem)}.section-heading{display:block}.section-heading h2{margin-top:10px}.article-card{display:block}.article-card a{display:inline-block;margin-top:18px} }
+@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
