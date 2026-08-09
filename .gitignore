@@ -9,3 +9,6 @@ coverage/
 *.log
 *.tsbuildinfo
 .DS_Store
+
+# Personal handoff notes
+.notes/next-session-prompt.md
