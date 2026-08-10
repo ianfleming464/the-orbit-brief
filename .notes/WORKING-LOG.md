@@ -42,3 +42,38 @@
 - This preserves the agentic-chat direction while keeping the first working
   route rules-first and inspectable. Topic retrieval, embeddings, and agent
   orchestration remain later slices.
+
+## 2026-08-10 — Checkpoint 2 implementation
+
+- Added a chat-first client shell with five starter prompts and a question input.
+- Recent/latest wording is classified deterministically and queries the five
+  newest SQL Article records; the response includes clickable NASA source cards.
+- Unsupported topic questions remain explicitly bounded until semantic
+  retrieval exists. Asking a question never triggers ingestion; the manual
+  `npm run ingest:nasa` command remains the separate refresh operation.
+- Added explicit loading, empty, invalid, unsupported, and database-error
+  states, plus unit coverage for routing, validation, and deterministic copy.
+
+## 2026-08-10 — Follow-up UX notes
+
+- The current corpus contains the latest 10 articles from the last manual
+  ingestion; the chat query does not automatically refresh NASA data. User-facing
+  wording should continue to distinguish “latest indexed” from live/current news.
+- Future freshness UX is undecided: consider whether showing the most recent
+  indexed articles by default is useful, or whether the app should make the
+  indexed coverage and refresh action more prominent first.
+- Starter prompts currently overlap in meaning. Revisit them later with more
+  distinct user intents once topic retrieval and broader question support exist.
+
+## 2026-08-10 — Capstone architecture clarification
+
+- The deterministic recent-news route is early scaffolding. The intended
+  capstone workflow follows the Parsity medical RAG pattern: a structured
+  selector chooses SQL, RAG, BOTH, or NEITHER; SQL and RAG workers can run in
+  parallel; an aggregator returns the grounded, source-linked answer.
+- SQL remains the canonical store for exact date/source queries, article
+  metadata, URL/content-hash idempotency, ingestion tracking, and source lookup.
+- Recorded Brian Jenney's web-search fallback feedback in `.notes/AGENT-CONTEXT.md`:
+  consider an allowlisted web-discovery path for corpus misses later, with
+  explicit provenance such as `nasa_official` versus `web_discovery` and a
+  separate retrieval-method field.

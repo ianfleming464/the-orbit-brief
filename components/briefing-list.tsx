@@ -3,7 +3,7 @@ type Article = {
   title: string;
   source: string;
   canonicalUrl: string;
-  publishedAt: Date;
+  publishedAt: string | Date;
 };
 
 function formatDate(date: Date) {
@@ -18,7 +18,7 @@ export function BriefingList({ articles }: { articles: Article[] }) {
     <ul className="article-list">
       {articles.map((article) => (
         <li className="article-card" key={article.id}>
-          <div><p className="article-meta">{article.source} <span aria-hidden="true">·</span> {formatDate(article.publishedAt)}</p><h3>{article.title}</h3></div>
+          <div><p className="article-meta">{article.source} <span aria-hidden="true">·</span> {formatDate(new Date(article.publishedAt))}</p><h3>{article.title}</h3></div>
           <a href={article.canonicalUrl} target="_blank" rel="noreferrer">Read at NASA <span aria-hidden="true">↗</span></a>
         </li>
       ))}

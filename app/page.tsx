@@ -1,4 +1,5 @@
 import { BriefingList } from "@/components/briefing-list";
+import { ChatShell } from "@/components/chat-shell";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function Home() {
         <h1>The Orbit Brief</h1>
         <p className="dek">A quiet, source-first view of what NASA has published recently.</p>
       </header>
+      <ChatShell />
       <section className="briefing" aria-labelledby="briefing-heading">
         <div className="section-heading"><p className="eyebrow">Latest records</p><h2 id="briefing-heading">Recent NASA articles</h2></div>
         <BriefingList articles={articles} />

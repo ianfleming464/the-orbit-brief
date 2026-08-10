@@ -26,6 +26,8 @@ NASA feed → SQL article records → recent article list
 ```
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
+The intended selector/SQL/RAG/aggregator architecture and future web-search
+fallback are recorded in [.notes/AGENT-CONTEXT.md](.notes/AGENT-CONTEXT.md).
 
 The first implementation uses a hosted PostgreSQL database through Prisma. Set
 `DATABASE_URL`, then run the manual ingestion command to populate the SQL
@@ -62,6 +64,17 @@ users can type a question or choose a small set of starter prompts such as
 “Show me the latest NASA news.” Recent/latest prompts will use SQL-backed
 article records; ingestion remains a separate refresh operation rather than a
 hidden side effect of every chat question.
+
+### Chat-first briefing shell
+
+The current chat slice supports recent-news questions only. Questions containing
+“latest,” “recent,” “newest,” “today,” or “this week” query the five newest SQL
+articles and return clickable NASA source cards. Topic retrieval, embeddings,
+Pinecone, agents, and answer generation are intentionally deferred.
+
+The chat never runs ingestion. To refresh the stored corpus during development,
+run `npm run ingest:nasa` separately. An empty database, unsupported question,
+loading request, and database failure each have an explicit user-facing state.
 
 ## Initial boundaries
 
