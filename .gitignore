@@ -10,5 +10,5 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 
-# Personal handoff notes
+# Keep personal handoff notes local to this workspace.
 .notes/next-session-prompt.md
