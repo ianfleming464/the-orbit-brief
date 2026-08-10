@@ -76,6 +76,47 @@ The chat never runs ingestion. To refresh the stored corpus during development,
 run `npm run ingest:nasa` separately. An empty database, unsupported question,
 loading request, and database failure each have an explicit user-facing state.
 
+### Checkpoint 3 development
+
+The RSS feed is a current-items source, not a historical backfill. Use the
+official NASA news-release archive discovery command to inspect the available
+historical window before it is written to the SQL corpus:
+
+```bash
+npm run discover:nasa-archive -- --pages 20
+```
+
+Chunking decisions for the later Pinecone index are documented in
+[.notes/checkpoint-3-chunking-decision.md](.notes/checkpoint-3-chunking-decision.md).
+
+Inspect the chunking effect against the current SQL corpus without writing data
+or calling an external service:
+
+```bash
+npm run inspect:nasa-chunks
+```
+
+Use `--limit 3` to inspect more articles or `--max-chars 800` to see how a
+smaller chunk boundary changes the output:
+
+```bash
+npm run inspect:nasa-chunks -- --limit 3 --max-chars 800
+```
+
+Prepare the exact records that will later be embedded and upserted, without
+creating a Pinecone index or sending data to OpenAI:
+
+```bash
+npm run prepare:nasa-index
+```
+
+Before the index-creation step, install the official SDKs and set the server-only
+`OPENAI_API_KEY`, `PINECONE_API_KEY`, and `PINECONE_INDEX` values in `.env`:
+
+```bash
+npm install openai @pinecone-database/pinecone
+```
+
 ## Initial boundaries
 
 - NASA news only.

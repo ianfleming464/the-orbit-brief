@@ -77,3 +77,100 @@
   consider an allowlisted web-discovery path for corpus misses later, with
   explicit provenance such as `nasa_official` versus `web_discovery` and a
   separate retrieval-method field.
+
+## 2026-08-10 — Checkpoint 3 approved plan
+
+Approved implementation sequence:
+
+1. Investigate whether an official NASA archive/API can provide the intended
+   historical backfill. Do not add broader web sources at this stage.
+2. Build and test local sentence-aware chunking before paid embedding calls.
+3. Add dense OpenAI embeddings and a dedicated Pinecone index with controlled
+   batch indexing and deterministic IDs.
+4. Inspect vector counts and metadata, then record the Checkpoint 3 evidence.
+
+Checkpoint 3 stops before semantic query evaluation, selectors, SQL/RAG agents,
+web fallback, aggregation, or answer generation.
+
+### Approved chunking rules
+
+- Keep each article separate; never cross article boundaries.
+- Accumulate complete sentences up to approximately 1,500 characters.
+- Split an unusually long individual sentence only at word boundaries.
+- Include article title context in the embedding text.
+- Use no overlap initially to avoid duplicate vectors and cost.
+- Use dense `text-embedding-3-small` vectors at 1536 dimensions.
+- Preserve article ID, chunk index, title, source, canonical URL,
+  publication date, content hash, and embedding version as metadata.
+- Use deterministic IDs such as `nasa:<articleId>:<chunkIndex>`.
+
+SQL remains canonical for Article records and Pinecone remains a derived index.
+The current stored bodies have flattened whitespace, so sentence boundaries are
+the reliable structure; paragraph restoration is deferred.
+
+## 2026-08-10 — Backfill viability investigation
+
+- The configured `NASA_RSS_URL` currently exposes only 10 distinct items, with
+  a live date range of August 7–10, 2026. The existing SQL corpus contains 10
+  records spanning August 6–8, so `BACKFILL_DAYS=180` cannot create a 180-day
+  corpus from the RSS endpoint alone.
+- NASA provides an official `2026 NASA News Releases` archive page and a
+  paginated `news-release/page/N/` listing. The archive contains dated releases
+  from July and earlier, demonstrating a plausible official historical source
+  for the intended backfill.
+- Decision: investigate the archive pagination and article-link extraction as
+  the next implementation increment before embedding. Do not add broader web
+  sources. If the archive proves stable, extend the existing NASA ingestion
+  adapter; otherwise retain the current 10-item corpus as a technical fixture
+  and document the coverage limitation.
+
+## 2026-08-10 — Archive discovery increment complete
+
+- Added a read-only NASA archive discovery path using official paginated
+  `/news-release/page/N/` listings. It accepts only canonical NASA news-release
+  URLs, then reads each article title and publication date from the article page.
+- The existing RSS ingestion path remains unchanged and is still the freshness
+  source. Archive discovery is intentionally a dry-run command until its live
+  output is reviewed; it does not write SQL records.
+- Fixture tests cover archive-navigation exclusion, article publication-date
+  parsing, and backfill-window filtering. The initial live run remains pending
+  because this environment cannot resolve NASA from local shell commands.
+
+## 2026-08-10 — Local chunking increment complete
+
+- Added the approved pure sentence-aware chunker: it keeps Article boundaries,
+  packs complete sentences to an approximately 1,500-character limit, splits
+  exceptional long sentences at word boundaries, includes title context for
+  embeddings, and uses no overlap.
+- Added deterministic IDs (`nasa:<articleId>:<chunkIndex>`) and preserves
+  article provenance, content hash, and embedding version per chunk.
+- Added `.notes/checkpoint-3-chunking-decision.md` so the implementation HOW,
+  WHY, alternatives, and Parsity precedent are easy to find for future agents
+  and the capstone presentation.
+- Local tests cover sentence packing, long-sentence fallback, no-overlap,
+  deterministic metadata, and flattened-whitespace handling.
+
+## 2026-08-10 — Pre-index record contract complete
+
+- Added `npm run inspect:nasa-chunks` to display an Article before chunking and
+  the resulting chunk boundaries, embedding context, IDs, and metadata after
+  chunking. It is read-only and useful for explaining the decision in a demo.
+- Added `npm run prepare:nasa-index`, a read-only dry run that builds the exact
+  records intended for Pinecone: deterministic ID, title-prefixed embedding
+  text, and inspectable metadata including the chunk text.
+- Decision: retain chunk text in vector metadata. SQL remains canonical, but
+  retrieval results can later show the exact matched evidence and citation
+  without hidden reconstruction. The storage trade-off is acceptable for this
+  small, bounded corpus.
+- `.env.example` now declares the server-only OpenAI and Pinecone variables.
+  No index was created and no embeddings or vectors were written. SDK
+  installation remains pending because this environment cannot resolve the npm
+  registry; do not hand-edit the lockfile to work around that.
+- Verified lint, TypeScript, production build, and 21 unit tests.
+
+## 2026-08-10 — Checkpoint 3 handover
+
+- Wrote `.notes/next-session-prompt.md` as the next-session handover. It records
+  the stopping point (before Pinecone index creation), the approved chunking and
+  SQL decisions, the available inspection commands, setup values needed, and the
+  narrow next vector-write task.
