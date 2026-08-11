@@ -19,7 +19,8 @@ news and investigate topics using an indexed, trusted NASA corpus.
 | Checkpoint 3.1: RSS feed-to-index synchronization | Complete |
 | Checkpoint 4: inspectable semantic retrieval | Complete |
 | Checkpoint 5: grounded generated answers | Complete |
-| Selector / SQL-RAG / aggregator / web fallback | Deferred |
+| Selector / SQL-RAG / aggregator workflow | Next, approved direction |
+| Allowlisted web-search fallback | Deferred until core workflow works |
 
 ## Verified corpus and index
 
@@ -49,7 +50,11 @@ multiple sentence-aware chunks.
 - Chunk per Article, sentence-aware, about 1,500 characters, no overlap.
 - Include title context in embedding input.
 - Use deterministic vector IDs: `nasa:<articleId>:<chunkIndex>`.
-- Keep agentic routing, web fallback, hybrid search, and reranking deferred.
+- The next product phase is intentionally agentic: selector → SQL and/or RAG
+  specialist → aggregator. It is the capstone's learning objective, not
+  accidental complexity.
+- Keep web fallback, hybrid search, and reranking deferred until the core
+  agent workflow has been demonstrated.
 
 ## Grounded-answer evidence
 
@@ -68,16 +73,20 @@ message. Retrieved text is labelled as untrusted reference data in the prompt.
 
 ## Immediate next objective
 
-Evaluate the completed retrieval-and-answer baseline before deciding whether to
-add complexity:
+Design and implement the smallest explainable agent workflow, using the proven
+direct path as the control condition:
 
 ```text
-small evaluation set → identify actual retrieval/grounding failures
-→ decide whether reranking or later routing is justified
+question → selector (SQL | RAG | BOTH | NEITHER, with reason)
+→ selected SQL and/or RAG specialists
+→ aggregator → source-linked answer
 ```
 
-Do not introduce a selector, SQL/RAG workers, aggregator, web fallback, or any
-other agentic framework before this baseline has evaluation evidence.
+The selector decision and reason must be structured and logged during
+development. Use structured query plans and Prisma for the SQL specialist
+instead of executing model-authored raw SQL against this simple Article corpus.
+The web-search fallback is a separate later `WEB` capability—not a hidden
+meaning of `NEITHER`—and should not be added in the first workflow increment.
 
 ## Document map
 

@@ -207,6 +207,32 @@ after retrieval because vector metadata already contains the source card fields
 needed for this small corpus. Revisit an SQL source lookup only if metadata
 becomes insufficient or a concrete consistency issue is observed.
 
+### 6.1. Build the agentic workflow — next, approved direction
+
+This is the capstone learning objective. Adapt the proven medical-RAG shape in
+the smallest form suitable for one NASA `Article` corpus:
+
+```text
+question → selector (SQL | RAG | BOTH | NEITHER, with reason)
+→ selected specialist functions → aggregator → source-linked answer
+```
+
+- The selector uses structured Zod output and logs its chosen route and reason.
+- `sql.ts` uses a validated structured Article query plan and Prisma; do not add
+  arbitrary model-authored raw SQL merely to duplicate the medical app.
+- `rag.ts` wraps inspectable Pinecone retrieval and returns evidence, not prose.
+- `aggregator.ts` combines SQL rows and/or RAG evidence into the final grounded
+  answer. Do not add streaming or an agent framework unless it makes this
+  initial vertical slice clearer.
+- Start with SQL, RAG, BOTH, and NEITHER. Preserve the existing direct path as
+  the baseline/control for comparison.
+- Record a small route-evaluation set, including the examples in
+  `AGENT-CONTEXT.md`, before expanding the architecture.
+
+An allowlisted web-search specialist is a later extension for older or
+out-of-corpus questions. It must be explicit as `WEB` (with provenance), not a
+hidden behavior inside `NEITHER`.
+
 ### 7. Evaluate reranking only if needed
 
 Use baseline retrieval first. Add reranking only when evaluation shows that:
