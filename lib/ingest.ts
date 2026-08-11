@@ -15,16 +15,12 @@ function isWithinBackfill(item: NormalizedFeedItem, backfillDays: number): boole
   return item.publishedAt.valueOf() >= Date.now() - backfillDays * 24 * 60 * 60 * 1000;
 }
 
-export async function ingestNasa(): Promise<IngestionSummary> {
-  const env = getEnv();
-  const feedItems = (await readFeed(env.NASA_RSS_URL)).filter((item) =>
-    isWithinBackfill(item, env.BACKFILL_DAYS),
-  );
+export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<IngestionSummary> {
   const summary: IngestionSummary = {
-    discovered: feedItems.length, inserted: 0, updated: 0, unchanged: 0, failed: 0, failures: [],
+    discovered: items.length, inserted: 0, updated: 0, unchanged: 0, failed: 0, failures: [],
   };
 
-  for (const item of feedItems) {
+  for (const item of items) {
     try {
       const existing = await db.article.findUnique({
         where: { canonicalUrl: item.canonicalUrl },
@@ -58,4 +54,12 @@ export async function ingestNasa(): Promise<IngestionSummary> {
     }
   }
   return summary;
+}
+
+export async function ingestNasa(): Promise<IngestionSummary> {
+  const env = getEnv();
+  const feedItems = (await readFeed(env.NASA_RSS_URL)).filter((item) =>
+    isWithinBackfill(item, env.BACKFILL_DAYS),
+  );
+  return ingestArticleItems(feedItems);
 }

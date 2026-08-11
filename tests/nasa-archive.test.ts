@@ -18,6 +18,15 @@ const oldArticleHtml = `
   <time datetime="2026-01-01T12:00:00Z"></time>
 `;
 
+const nasaArticleMetadataHtml = `
+  <article>
+    <h1>NASA template release</h1>
+    <div class="article-meta-item"><span class="heading-12 text-uppercase">RELEASE</span></div>
+    <div class="article-meta-item"><span class="heading-12 text-uppercase">26-063</span></div>
+    <div class="article-meta-item"><span class="heading-12 text-uppercase">Aug 10, 2026</span></div>
+  </article>
+`;
+
 describe("NASA news-release archive discovery", () => {
   it("keeps canonical article links and excludes archive navigation", () => {
     expect(parseArchiveLinks(archiveHtml, "https://www.nasa.gov/news-release/")).toEqual([
@@ -29,6 +38,13 @@ describe("NASA news-release archive discovery", () => {
     expect(parseArchiveArticle(currentArticleHtml, "https://www.nasa.gov/news-release/example-release/")).toMatchObject({
       title: "Example release",
       canonicalUrl: "https://www.nasa.gov/news-release/example-release",
+    });
+  });
+
+  it("falls back to NASA article metadata when structured publication dates are absent", () => {
+    expect(parseArchiveArticle(nasaArticleMetadataHtml, "https://www.nasa.gov/news-release/nasa-template-release/")).toMatchObject({
+      title: "NASA template release",
+      publishedAt: new Date("2026-08-10T00:00:00.000Z"),
     });
   });
 

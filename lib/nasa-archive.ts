@@ -21,6 +21,17 @@ function parseDate(value: string | null | undefined): Date | null {
   return Number.isNaN(parsed.valueOf()) ? null : parsed;
 }
 
+function parseNasaDisplayDate(value: string | null | undefined): Date | null {
+  const match = value?.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (\d{4})$/);
+  if (!match) return null;
+
+  const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(match[1]!);
+  const date = new Date(Date.UTC(Number(match[3]), month, Number(match[2])));
+  return date.getUTCFullYear() === Number(match[3]) && date.getUTCMonth() === month && date.getUTCDate() === Number(match[2])
+    ? date
+    : null;
+}
+
 function findDatePublished(value: unknown): string | null {
   if (Array.isArray(value)) {
     for (const entry of value) {
@@ -38,6 +49,15 @@ function findDatePublished(value: unknown): string | null {
     const date = findDatePublished(child);
     if (date) return date;
   }
+  return null;
+}
+
+function findArticleMetadataDate(document: Document): Date | null {
+  for (const element of document.querySelectorAll("article .article-meta-item .heading-12.text-uppercase")) {
+    const date = parseNasaDisplayDate(element.textContent?.replace(/\s+/g, " ").trim());
+    if (date) return date;
+  }
+
   return null;
 }
 
@@ -86,7 +106,8 @@ export function parseArchiveArticle(html: string, articleUrl: string): Normalize
   const publishedAt =
     parseDate(structuredDate) ??
     parseDate(document.querySelector('meta[property="article:published_time"]')?.getAttribute("content")) ??
-    parseDate(document.querySelector("time[datetime]")?.getAttribute("datetime"));
+    parseDate(document.querySelector("time[datetime]")?.getAttribute("datetime")) ??
+    findArticleMetadataDate(document);
 
   if (!publishedAt) throw new Error("Archive article is missing a valid publication date");
 

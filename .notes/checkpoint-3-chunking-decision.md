@@ -24,6 +24,16 @@ Each chunk carries `articleId`, `chunkIndex`, `title`, `source`, canonical URL,
 publication date, content hash, and embedding version. Its vector ID is
 `nasa:<articleId>:<chunkIndex>`.
 
+## Extraction boundary
+
+For current NASA news-release pages, extract text from
+`article .usa-article-content .entry-content` before chunking. This excludes
+the page's byline/release sidebar and “Share/Details” footer while preserving
+the published article text. Use Readability only as a fallback if that selector
+is absent or empty. This is deliberately separate from chunking: source-page
+noise should be removed at extraction, not compensated for by changing chunk
+size or overlap.
+
 ## Why
 
 - Sentence boundaries are the only reliable semantic structure in the current
@@ -48,3 +58,13 @@ publication date, content hash, and embedding version. Its vector ID is
 
 Revisit these only with retrieval evidence or when extraction quality becomes a
 concrete product limitation.
+
+## Initial indexing evidence
+
+On August 11, 2026, the ten most recent SQL articles were embedded with
+`text-embedding-3-small` and upserted into the dense 1536-dimensional cosine
+Pinecone index. They produced 17 vectors from 3,963 input tokens; Pinecone's
+reported vector count also was 17. This validates the chosen extraction,
+chunking, metadata, embedding, and deterministic-ID contract on a bounded
+sample. Full-corpus indexing remains an explicit next action, pending sample
+review.

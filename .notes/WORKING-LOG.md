@@ -174,3 +174,147 @@ the reliable structure; paragraph restoration is deferred.
   the stopping point (before Pinecone index creation), the approved chunking and
   SQL decisions, the available inspection commands, setup values needed, and the
   narrow next vector-write task.
+
+## 2026-08-11 — Archive discovery dry run
+
+- Ran `npm run discover:nasa-archive -- --pages 20` without SQL writes. It read
+  two archive pages and found 20 canonical NASA news-release links.
+- The current publication-date parser accepted one July 29 item and rejected 19
+  articles as missing a valid date. Archive link discovery is viable, but the
+  article-date extraction is not yet robust enough for a backfill.
+- Decision: do not write archive records or begin archive chunking. Inspect a
+  failed article's actual date markup, add a targeted parser fallback, and rerun
+  this dry run before deciding whether to ingest the 90-day archive corpus.
+
+## 2026-08-11 — Archive date-parser correction
+
+- Investigation of a rejected official NASA release showed its publication date
+  is rendered as a human-readable value such as `Aug 10, 2026` inside
+  `article .article-meta-item .heading-12.text-uppercase`, rather than in
+  JSON-LD, OpenGraph metadata, or a `time[datetime]` element.
+- Added that template-specific fallback after the structured date sources. It
+  accepts only a parseable value within the article metadata area, so labels
+  such as `RELEASE` and release numbers are ignored; it does not scan arbitrary
+  page text for dates.
+- NASA's displayed day-only dates are parsed explicitly as UTC. This avoids a
+  local-timezone shift changing a date at the 90-day cutoff; timestamp-bearing
+  structured metadata continues to use its supplied timezone information.
+- Added a fixture test for this markup. The archive discovery command remains
+  read-only; rerun it next to validate the 90-day candidate volume before any
+  SQL ingestion or vector work.
+
+## 2026-08-11 — 90-day archive backfill validated
+
+- Ran `BACKFILL_DAYS=90 npm run discover:nasa-archive -- --pages 10` without
+  changing the saved environment or writing SQL. It read eight archive pages,
+  found 62 official NASA releases from May 15 through August 10, and reported
+  zero failures.
+- The official archive is therefore viable for the intended 90-day corpus.
+  This validates discovery only: the candidate pages have not yet had their
+  article bodies extracted, been upserted into SQL, chunked, embedded, or sent
+  to Pinecone.
+- Next recommendation: add one small archive backfill ingestion command that
+  reuses the existing article-body extractor and SQL URL/content-hash
+  idempotency. Keep it explicitly manual and inspect its dry-run/result before
+  starting Pinecone work.
+
+## 2026-08-11 — Archive backfill command implemented
+
+- Added `npm run ingest:nasa-archive`, an explicit manual command that discovers
+  official archive candidates in the configured window, extracts each full
+  article body, and writes them through the existing SQL Article upsert path.
+- Refactored the RSS storage loop into `ingestArticleItems`, which both RSS and
+  archive ingestion now use. Canonical URL and content hash remain the single
+  idempotency mechanism; no archive-only table, IDs, or duplicate persistence
+  model was introduced.
+- The command reports discovery and ingestion results separately and exits
+  non-zero if discovery or body extraction has failures. It has not been run
+  against the database in this increment. Use the documented `BACKFILL_DAYS=90`
+  command only after reviewing the read-only discovery result.
+
+## 2026-08-11 — Initial archive backfill completed
+
+- Ran `BACKFILL_DAYS=90 npm run ingest:nasa-archive -- --pages 10`. The command
+  read eight official archive pages, discovered 62 releases, and inserted all
+  62 full article records into SQL with zero discovery or extraction failures.
+  No Pinecone or OpenAI calls were made.
+- A read-only chunk inspection confirmed the new data participates in the
+  approved sentence-aware chunking path. The current Readability extraction
+  includes some NASA CMS chrome (byline/release metadata at the start and
+  footer text at the end) in the stored body. This does not invalidate the
+  archive backfill, but it is a real retrieval-quality concern before vectors
+  are generated.
+- Recommendation: inspect and tighten the NASA article-body extraction in one
+  small, testable increment before embedding this corpus. Do not silently
+  change chunking rules to compensate for source-page chrome.
+
+## 2026-08-11 — Extraction-quality decision
+
+- Live NASA release markup has a stable published-body boundary at
+  `article .usa-article-content .entry-content`; the previous generic
+  Readability-only extraction included surrounding article metadata and footer
+  details in its text.
+- Decision: prefer that NASA-specific body selector when it contains
+  substantive text, with Readability retained as a fallback for pages using a
+  different structure. This is a small, source-bound adapter rather than a
+  new ingestion abstraction.
+- Editorial content inside the published body (for example image credits or
+  press contacts) remains intact. The objective is to remove page chrome, not
+  perform lossy editorial rewriting. Re-run the idempotent archive backfill
+  after verification so the changed content hashes refresh the stored records.
+
+## 2026-08-11 — Archive body refresh completed
+
+- Verified the NASA body-selector extraction with focused unit tests, then ran
+  the 90-day archive command again. It discovered 62 releases and updated all
+  62 existing SQL records in place, with zero failures and no duplicate rows.
+- Read-only chunk inspection confirms that byline/release metadata and the
+  Share/Details footer no longer enter chunk text. An image credit and published
+  editorial/contact text remain by design; they are inside the article body and
+  are materially less harmful than the removed page chrome.
+- Updated the Checkpoint 3 chunking decision note to make the extraction
+  boundary explicit. The corpus is now ready for Pinecone configuration and
+  the later controlled embedding/upsert increment; no vectors have been made.
+
+## 2026-08-11 — Controlled vector writer prepared
+
+- Installed the official OpenAI and Pinecone SDKs and added `npm run index:nasa`.
+  It is a CLI-only, bounded writer: `--limit 10` is the default and `--all` is
+  explicit for the full corpus.
+- Before any OpenAI embedding call, the writer verifies that the manually
+  created Pinecone index is dense, 1536-dimensional, and cosine-based. It then
+  embeds title-prefixed chunks with `text-embedding-3-small`, validates every
+  returned vector dimension, and upserts the existing deterministic IDs in
+  batches of 25.
+- Deterministic IDs make same-content reruns overwrite safely. A future content
+  revision that reduces an article's chunk count needs a deliberate stale-vector
+  cleanup/reindex operation; it is not added here because this first index is
+  empty and the cleanup would be destructive complexity without MVP evidence.
+- No API keys or Pinecone index are configured in this workspace yet, so no
+  embeddings or vectors have been created.
+
+## 2026-08-11 — First Pinecone write verified
+
+- With the manually created `nasa-news` index and local server-only keys in
+  place, ran `npm run index:nasa -- --limit 10`. The writer verified the index
+  contract, embedded the ten most recent SQL articles with
+  `text-embedding-3-small`, and upserted 17 dense vectors.
+- OpenAI reported 3,963 input tokens. Pinecone reported a total vector count of
+  17, matching the writer's upsert count. This is the first paid/external write
+  for Checkpoint 3 and confirms the corpus → chunk → embed → Pinecone path.
+- Decision: stop after this bounded sample for review. Do not index the full
+  corpus or begin retrieval/answer generation until the sample is inspected and
+  approved.
+
+## 2026-08-11 — Full Checkpoint 3 corpus indexed
+
+- After sample inspection, the full writer run upserted 175 Pinecone records.
+  Read-only verification confirms 72 SQL Article records spanning May 15 to
+  August 10, 2026 and a Pinecone total vector count of 175.
+- This represents the validated 90-day official archive backfill (62 archive
+  releases) plus 10 distinct RSS-origin records already in the SQL corpus.
+  The 175 vectors are expected to exceed the 72 articles because the approved
+  sentence-aware chunker emits multiple chunks for longer bodies.
+- Checkpoint 3's ingestion/indexing vertical slice is complete. Retrieval
+  quality evaluation and any answer-generation work remain a later, separate
+  checkpoint.

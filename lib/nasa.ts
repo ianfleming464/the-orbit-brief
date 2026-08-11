@@ -56,6 +56,20 @@ export async function readFeed(feedUrl: string): Promise<NormalizedFeedItem[]> {
   return feed.items.map(normalizeFeedItem);
 }
 
+function normalizeArticleText(value: string | null | undefined): string {
+  return value?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+export function extractArticleBody(html: string, url: string): string {
+  const document = new JSDOM(html, { url }).window.document;
+  const nasaArticleBody = normalizeArticleText(
+    document.querySelector("article .usa-article-content .entry-content")?.textContent,
+  );
+  const body = nasaArticleBody || normalizeArticleText(new Readability(document).parse()?.textContent);
+  if (body.length < 200) throw new Error("Article extraction returned too little text");
+  return body;
+}
+
 export async function extractArticle(url: string): Promise<string> {
   const response = await fetch(url, {
     headers: { "user-agent": "The Orbit Brief/0.1 (NASA news reader)" },
@@ -63,10 +77,5 @@ export async function extractArticle(url: string): Promise<string> {
   });
   if (!response.ok) throw new Error(`Article returned HTTP ${response.status}`);
 
-  const html = await response.text();
-  const document = new JSDOM(html, { url }).window.document;
-  const parsed = new Readability(document).parse();
-  const body = parsed?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-  if (body.length < 200) throw new Error("Article extraction returned too little text");
-  return body;
+  return extractArticleBody(await response.text(), url);
 }

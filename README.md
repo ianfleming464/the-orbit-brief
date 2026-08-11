@@ -78,13 +78,31 @@ loading request, and database failure each have an explicit user-facing state.
 
 ### Checkpoint 3 development
 
-The RSS feed is a current-items source, not a historical backfill. Use the
-official NASA news-release archive discovery command to inspect the available
-historical window before it is written to the SQL corpus:
+The RSS feed is a current-items source, not a historical backfill. The official
+NASA news-release archive was validated as a viable 90-day discovery source:
+on August 11, 2026 it returned 62 dated releases from May 15 to August 10 with
+zero date-parsing failures. Discovery is read-only; it does not yet extract
+article bodies or write SQL records. Reproduce that 90-day check with:
 
 ```bash
-npm run discover:nasa-archive -- --pages 20
+BACKFILL_DAYS=90 npm run discover:nasa-archive -- --pages 10
 ```
+
+After reviewing that output, run the manual archive backfill to extract each
+candidate's full body and upsert it into the existing SQL Article store. It
+uses the same canonical-URL and content-hash idempotency as RSS ingestion, so
+rerunning it reports unchanged articles rather than duplicating them:
+
+```bash
+BACKFILL_DAYS=90 npm run ingest:nasa-archive -- --pages 10
+```
+
+This command writes SQL records and makes network requests to each archive
+article. Review its JSON summary before starting Pinecone work.
+
+The initial 90-day run inserted 62 archive articles successfully on August 11,
+2026. Re-running the same command is safe: matching content is reported as
+unchanged rather than duplicated.
 
 Chunking decisions for the later Pinecone index are documented in
 [.notes/checkpoint-3-chunking-decision.md](.notes/checkpoint-3-chunking-decision.md).
@@ -116,6 +134,41 @@ Before the index-creation step, install the official SDKs and set the server-onl
 ```bash
 npm install openai @pinecone-database/pinecone
 ```
+
+Create a Pinecone serverless index manually with the name `nasa-news`, dense
+vectors, 1536 dimensions, and cosine similarity. Do not choose an integrated
+embedding index: this project generates embeddings with OpenAI. After setting
+the two API keys and index name in `.env`, first index a bounded sample:
+
+```bash
+npm run index:nasa -- --limit 10
+```
+
+Review the JSON count and records in Pinecone, then index the full SQL corpus:
+
+```bash
+npm run index:nasa -- --all
+```
+
+The command verifies index dimension/metric before calling OpenAI, embeds in
+25-record batches, validates embedding dimensions, and upserts deterministic
+vector IDs. Reruns overwrite matching IDs. A later reindex process must delete
+obsolete vectors if a changed article produces fewer chunks; that destructive
+maintenance path is deliberately outside this first controlled write.
+
+### First live indexing evidence
+
+The first controlled run completed on August 11, 2026. Ten recent SQL articles
+produced 17 sentence-aware vectors and used 3,963 OpenAI embedding input
+tokens. Pinecone reported 17 total vectors, matching the upsert result. This
+proves the Checkpoint 3 ingestion path through Pinecone; inspect that sample in
+the Pinecone console before running `npm run index:nasa -- --all` for the full
+SQL corpus.
+
+The full-corpus run has now completed: 72 SQL articles spanning May 15 through
+August 10, 2026 are represented by 175 Pinecone vectors. The difference between
+article and vector counts is expected because longer articles produce multiple
+sentence-aware chunks.
 
 ## Initial boundaries
 
