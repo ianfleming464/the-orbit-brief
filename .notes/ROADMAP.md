@@ -113,11 +113,13 @@ Apply the chunking exercise to the stored article body:
 
 SQL remains the source of truth. Pinecone is a retrieval index only.
 
-Checkpoint 3 evidence: 72 SQL articles dated May 15–August 10, 2026 produced
-175 vectors in a dense 1536-dimensional cosine Pinecone index. The detailed
+Checkpoint 3 evidence: the initial 72 SQL articles dated May 15–August 10,
+2026 produced 175 vectors in a dense 1536-dimensional cosine Pinecone index.
+The later RSS synchronization refresh brought the corpus to 81 Articles and
+204 vectors. The detailed
 chunking/extraction decision is in `.notes/checkpoint-3-chunking-decision.md`.
 
-### 3.1 Feed → index synchronization — next
+### 3.1 Feed → index synchronization — complete
 
 Build the smallest operational refresh path:
 
@@ -129,11 +131,12 @@ Build the smallest operational refresh path:
   fewer chunks;
 - verify a no-change refresh makes no embedding calls or vector writes.
 
-Do not add retrieval, answer generation, selectors, or autonomous agents in
-this increment. First establish that a fresh RSS run can keep the derived index
-consistent with the canonical SQL corpus at predictable cost.
+Verified on August 11, 2026: the first live refresh inserted nine Articles and
+29 vectors; an immediate rerun found ten unchanged feed items and made no
+embedding or vector calls. The stale-vector policy is replacement upsert before
+deleting only IDs absent from the new chunk set.
 
-### 4. Retrieval before answer generation
+### 4. Retrieval before answer generation — complete
 
 Build and verify search independently before adding an LLM answer.
 
@@ -154,6 +157,12 @@ Use representative questions such as:
 
 Record whether the expected article appears in the candidate set. A reranker
 cannot recover an article that first-stage retrieval failed to find.
+
+Verified on August 11, 2026 with `npm run query:nasa`: Moon and TEMPO questions
+retrieved the expected Moon Base and TEMPO articles at the top of the candidate
+set, with chunk text, scores, article IDs, dates, and canonical URLs displayed.
+An Europa query returned lower-scoring unrelated material, so no numeric
+no-result threshold has been assumed from this small baseline.
 
 ### 5. Add the grounded answer
 

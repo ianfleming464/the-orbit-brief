@@ -11,6 +11,8 @@
     "ingest:nasa": "tsx scripts/ingest-nasa.ts",
     "discover:nasa-archive": "tsx scripts/discover-nasa-archive.ts",
     "ingest:nasa-archive": "tsx scripts/ingest-nasa-archive.ts",
+    "sync:nasa-feed": "tsx scripts/sync-nasa-feed.ts",
+    "query:nasa": "tsx scripts/query-nasa.ts",
     "inspect:nasa-chunks": "tsx scripts/inspect-nasa-chunks.ts",
     "prepare:nasa-index": "tsx scripts/prepare-nasa-index.ts",
     "index:nasa": "tsx scripts/index-nasa.ts",

@@ -26,18 +26,18 @@ NASA RSS + official archive → SQL Article corpus → sentence-aware chunks
 → OpenAI embeddings → Pinecone semantic index
 ```
 
-Checkpoint 3 is complete: the SQL corpus contains 72 NASA articles dated May
-15–August 10, 2026, represented by 175 Pinecone vectors. The current UI still
-supports deterministic recent-news questions; semantic retrieval and generated
-answers remain intentionally separate upcoming work.
+Checkpoints 3 and 4 are complete: the SQL corpus contains 81 NASA articles
+dated May 15–August 11, 2026, represented by 204 Pinecone vectors. The current
+UI still supports deterministic recent-news questions; semantic retrieval is
+available as an inspection CLI, while generated answers remain separate work.
 
-The next implementation increment is feed-to-index synchronization: a manual
-RSS refresh must identify new or changed SQL articles, generate their current
-chunks, and safely update the corresponding Pinecone vectors without reindexing
-the entire corpus by default. Retrieval, answer generation, selector agents,
-and web fallback are not part of that increment.
+The next implementation increment is a bounded grounded-answer path over the
+inspectable retrieval results. Selector agents and web fallback are not part of
+that increment.
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
+For the single current-state view, start with
+[.notes/PROJECT-STATUS.md](.notes/PROJECT-STATUS.md).
 The intended selector/SQL/RAG/aggregator architecture and future web-search
 fallback are recorded in [.notes/AGENT-CONTEXT.md](.notes/AGENT-CONTEXT.md).
 
@@ -173,10 +173,24 @@ proves the Checkpoint 3 ingestion path through Pinecone; inspect that sample in
 the Pinecone console before running `npm run index:nasa -- --all` for the full
 SQL corpus.
 
-The full-corpus run has now completed: 72 SQL articles spanning May 15 through
-August 10, 2026 are represented by 175 Pinecone vectors. The difference between
-article and vector counts is expected because longer articles produce multiple
-sentence-aware chunks.
+The corpus now contains 81 SQL Articles spanning May 15–August 11, 2026 and
+204 Pinecone vectors. The difference between article and vector counts is
+expected because longer articles produce multiple sentence-aware chunks.
+
+### Manual refresh and retrieval inspection
+
+Refresh RSS data and synchronize only new or changed Articles to Pinecone:
+
+```bash
+npm run sync:nasa-feed
+```
+
+An unchanged feed run makes no OpenAI or Pinecone data calls. Inspect semantic
+retrieval without generating an answer:
+
+```bash
+npm run query:nasa -- --question "What has NASA said about the Moon?" --top-k 3
+```
 
 ## Initial boundaries
 

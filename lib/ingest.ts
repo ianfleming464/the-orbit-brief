@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { ArticleForChunking } from "@/lib/chunking";
 import { getEnv } from "@/lib/env";
 import { extractArticle, hashContent, readFeed, type NormalizedFeedItem } from "@/lib/nasa";
 
@@ -11,14 +12,22 @@ export type IngestionSummary = {
   failures: string[];
 };
 
+export type ChangedArticle = ArticleForChunking & { change: "inserted" | "updated" };
+
+export type IngestionResult = {
+  summary: IngestionSummary;
+  changedArticles: ChangedArticle[];
+};
+
 function isWithinBackfill(item: NormalizedFeedItem, backfillDays: number): boolean {
   return item.publishedAt.valueOf() >= Date.now() - backfillDays * 24 * 60 * 60 * 1000;
 }
 
-export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<IngestionSummary> {
+export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<IngestionResult> {
   const summary: IngestionSummary = {
     discovered: items.length, inserted: 0, updated: 0, unchanged: 0, failed: 0, failures: [],
   };
+  const changedArticles: ChangedArticle[] = [];
 
   for (const item of items) {
     try {
@@ -33,7 +42,7 @@ export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<I
         continue;
       }
 
-      await db.article.upsert({
+      const article = await db.article.upsert({
         where: { canonicalUrl: item.canonicalUrl },
         create: {
           source: "NASA", title: item.title, canonicalUrl: item.canonicalUrl,
@@ -44,8 +53,10 @@ export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<I
           extractionState: "complete",
         },
       });
-      if (existing) summary.updated += 1;
+      const change = existing ? "updated" : "inserted";
+      if (change === "updated") summary.updated += 1;
       else summary.inserted += 1;
+      changedArticles.push({ ...article, change });
     } catch (error) {
       summary.failed += 1;
       summary.failures.push(
@@ -53,10 +64,10 @@ export async function ingestArticleItems(items: NormalizedFeedItem[]): Promise<I
       );
     }
   }
-  return summary;
+  return { summary, changedArticles };
 }
 
-export async function ingestNasa(): Promise<IngestionSummary> {
+export async function ingestNasa(): Promise<IngestionResult> {
   const env = getEnv();
   const feedItems = (await readFeed(env.NASA_RSS_URL)).filter((item) =>
     isWithinBackfill(item, env.BACKFILL_DAYS),

@@ -29,10 +29,10 @@ async function main() {
         discovered: discovery.items.length,
         failures: discovery.failures,
       },
-      ingestion,
+      ingestion: ingestion.summary,
     }, null, 2));
 
-    if (discovery.failures.length > 0 || ingestion.failed > 0) process.exitCode = 1;
+    if (discovery.failures.length > 0 || ingestion.summary.failed > 0) process.exitCode = 1;
   } finally {
     await db.$disconnect();
   }

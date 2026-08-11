@@ -333,3 +333,40 @@ the reliable structure; paragraph restoration is deferred.
 - Later, after synchronization is understood, build inspectable semantic
   retrieval before answer generation. Agentic selector/RAG/SQL/aggregation and
   web fallback remain future architecture, not the immediate next task.
+
+## 2026-08-11 — Documentation consolidation
+
+- Added `.notes/PROJECT-STATUS.md` as the single short current-state page:
+  completed checkpoints, verified corpus/index counts, MVP decisions, immediate
+  next objective, and a map to deeper documents.
+- Decision: use Project Status first for orientation, Roadmap for intended
+  sequence, Working Log for evidence/history, and focused decision notes for
+  rationale. This reduces the need to reconstruct state from scattered files.
+
+## 2026-08-11 — Checkpoint 3.1 RSS-to-index synchronization complete
+
+- Added `npm run sync:nasa-feed`, a single explicit manual refresh path. RSS
+  ingestion returns the changed Article records in memory; only those records
+  are chunked, embedded, and upserted to Pinecone.
+- For updates, the sync lists the deterministic vector-ID prefix, upserts all
+  replacement chunks, then deletes only IDs no longer produced. This preserves
+  the previous vectors if embedding/upsert fails before replacement completes.
+- Live verification: the first run discovered ten feed items, inserted nine
+  SQL Articles, and upserted 29 vectors using 7,786 embedding tokens. An
+  immediate rerun found ten unchanged items and returned `vectorSync: null`,
+  confirming no OpenAI/Pinecone work on an unchanged refresh.
+- Next checkpoint: build an inspectable semantic retrieval CLI. Do not add
+  answer generation or agentic orchestration yet.
+
+## 2026-08-11 — Checkpoint 4 semantic retrieval complete
+
+- Added `npm run query:nasa -- --question "..." --top-k 5`. It embeds one
+  question, queries Pinecone, and prints each candidate's similarity score,
+  chunk text, article ID, title, publication date, and canonical source URL.
+- Live baseline checks: Moon and TEMPO questions returned the expected related
+  articles at the top of the result set. A likely corpus miss (Europa) returned
+  lower-scoring unrelated material, so a no-result score threshold is deferred
+  until a small evaluation set provides evidence for one.
+- Retrieval is deliberately a CLI inspection path only. Next is a bounded,
+  source-linked answer-generation slice; selector, SQL/RAG agents, aggregation,
+  and web fallback remain deferred.
