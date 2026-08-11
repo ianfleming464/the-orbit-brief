@@ -19,25 +19,33 @@ User asks about recent NASA news
 → the answer includes clickable NASA sources
 ```
 
-## First checkpoint
+## Current implementation
 
 ```text
-NASA feed → SQL article records → recent article list
+NASA RSS + official archive → SQL Article corpus → sentence-aware chunks
+→ OpenAI embeddings → Pinecone semantic index
 ```
+
+Checkpoint 3 is complete: the SQL corpus contains 72 NASA articles dated May
+15–August 10, 2026, represented by 175 Pinecone vectors. The current UI still
+supports deterministic recent-news questions; semantic retrieval and generated
+answers remain intentionally separate upcoming work.
+
+The next implementation increment is feed-to-index synchronization: a manual
+RSS refresh must identify new or changed SQL articles, generate their current
+chunks, and safely update the corresponding Pinecone vectors without reindexing
+the entire corpus by default. Retrieval, answer generation, selector agents,
+and web fallback are not part of that increment.
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
 The intended selector/SQL/RAG/aggregator architecture and future web-search
 fallback are recorded in [.notes/AGENT-CONTEXT.md](.notes/AGENT-CONTEXT.md).
 
-The first implementation uses a hosted PostgreSQL database through Prisma. Set
-`DATABASE_URL`, then run the manual ingestion command to populate the SQL
-corpus. `BACKFILL_DAYS` controls the feed window and `RETENTION_DAYS` controls
-the optional cleanup command. The current NASA feed may not expose 90 days of
-history; that coverage limitation is recorded as an ingestion risk until the
-archive source is confirmed.
-
-Chunking, embeddings, Pinecone, chat, and agent workflows begin only after the
-stored article text has been inspected in a later checkpoint.
+The implementation uses a hosted PostgreSQL database through Prisma as the
+canonical Article store. `BACKFILL_DAYS` controls the manual RSS/archive window
+and `RETENTION_DAYS` controls optional cleanup. The RSS feed is a freshness
+source; the official NASA news-release archive supplied the initial 90-day
+backfill.
 
 ### Run Checkpoint 1 locally
 
@@ -70,7 +78,7 @@ hidden side effect of every chat question.
 The current chat slice supports recent-news questions only. Questions containing
 “latest,” “recent,” “newest,” “today,” or “this week” query the five newest SQL
 articles and return clickable NASA source cards. Topic retrieval, embeddings,
-Pinecone, agents, and answer generation are intentionally deferred.
+agents, and answer generation are intentionally deferred from the chat flow.
 
 The chat never runs ingestion. To refresh the stored corpus during development,
 run `npm run ingest:nasa` separately. An empty database, unsupported question,

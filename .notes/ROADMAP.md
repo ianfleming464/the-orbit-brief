@@ -100,18 +100,38 @@ Add the minimum operational behavior:
 Start with a manageable backfill, such as 30–90 days. State the indexed
 coverage period in the product rather than implying complete NASA coverage.
 
-### 3. Chunk → embed → Pinecone
+### 3. Chunk → embed → Pinecone — complete
 
 Apply the chunking exercise to the stored article body:
 
-- split at paragraph boundaries where possible,
-- use modest overlap,
+- use sentence-aware chunks of approximately 1,500 characters,
+- use no overlap for the baseline,
 - include article title context in each chunk,
 - store `articleId`, `chunkIndex`, `publishedAt`, `source`, `canonicalUrl`,
   `contentHash`, and `embeddingVersion` as metadata,
 - use stable vector IDs so re-ingestion is safe.
 
 SQL remains the source of truth. Pinecone is a retrieval index only.
+
+Checkpoint 3 evidence: 72 SQL articles dated May 15–August 10, 2026 produced
+175 vectors in a dense 1536-dimensional cosine Pinecone index. The detailed
+chunking/extraction decision is in `.notes/checkpoint-3-chunking-decision.md`.
+
+### 3.1 Feed → index synchronization — next
+
+Build the smallest operational refresh path:
+
+- run the existing manual RSS ingestion;
+- identify which Article records are new or whose content hash changed;
+- chunk and embed only those affected records;
+- upsert their deterministic Pinecone IDs;
+- define and test how obsolete chunks are removed when an updated article has
+  fewer chunks;
+- verify a no-change refresh makes no embedding calls or vector writes.
+
+Do not add retrieval, answer generation, selectors, or autonomous agents in
+this increment. First establish that a fresh RSS run can keep the derived index
+consistent with the canonical SQL corpus at predictable cost.
 
 ### 4. Retrieval before answer generation
 

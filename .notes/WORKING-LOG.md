@@ -318,3 +318,18 @@ the reliable structure; paragraph restoration is deferred.
 - Checkpoint 3's ingestion/indexing vertical slice is complete. Retrieval
   quality evaluation and any answer-generation work remain a later, separate
   checkpoint.
+
+## 2026-08-11 — Checkpoint 3 pause / next-session direction
+
+- Checkpoint 3 is complete and committed as `0311f5f` (`feat: index NASA
+  backfill in Pinecone`). The canonical SQL corpus has 72 Articles and the
+  derived Pinecone index has 175 vectors; the 10-article sample was manually
+  inspected for clean sentence boundaries and metadata.
+- Next increment: design and implement manual RSS feed-to-index synchronization.
+  It must update only new or changed Article records, avoid embeddings on an
+  unchanged refresh, and explicitly handle stale chunks after a shortened
+  article update. Start by inspecting the existing RSS ingestion and index
+  writer; do not assume a new table or agent is necessary.
+- Later, after synchronization is understood, build inspectable semantic
+  retrieval before answer generation. Agentic selector/RAG/SQL/aggregation and
+  web fallback remain future architecture, not the immediate next task.
