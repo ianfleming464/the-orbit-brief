@@ -424,3 +424,15 @@ the reliable structure; paragraph restoration is deferred.
   actual publisher (`NASA`). This preserves provenance while allowing the
   product identity to grow beyond one future source without implying that it
   already does.
+
+## 2026-08-11 — Agent-work UX and retrieval backlog recorded
+
+- Recorded future work for truthful “Thinking…”/stage and error UX, a user
+  journey map, a reranking experiment, and explicit metadata hard filters.
+- Decision: keep the first agentic workflow as complete validated JSON with a
+  simple loading state. A simulated typing reveal is acceptable later visual
+  polish but is not streaming; actual streaming is a separate checkpoint using
+  structured events for text, stages, sources, and completion.
+- Decision: metadata filters should only encode user-stated hard constraints.
+  SQL remains the simpler exact engine for counts and listings; test date-bound
+  RAG filtering before generalising it.

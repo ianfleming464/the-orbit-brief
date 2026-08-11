@@ -88,6 +88,21 @@ instead of executing model-authored raw SQL against this simple Article corpus.
 The web-search fallback is a separate later `WEB` capability—not a hidden
 meaning of `NEITHER`—and should not be added in the first workflow increment.
 
+The first workflow returns complete validated JSON with a truthful “Thinking…”
+state. Streaming the aggregator is a separate polish/demo checkpoint after the
+workflow is correct; it will require structured stream events for text, stages,
+source cards, and errors.
+
+## Deferred product and learning backlog
+
+- Agent-work progress/error UX and a full user-journey map.
+- A measured reranking experiment where baseline retrieval contains, but
+  misorders, the expected source.
+- Explicit hard metadata filters for dates, source, and known article IDs;
+  SQL remains preferred for exact counts and listings.
+
+Details and guardrails are in [possible-improvements.md](possible-improvements.md).
+
 ## Document map
 
 - [ROADMAP.md](ROADMAP.md) — planned checkpoints and scope.
