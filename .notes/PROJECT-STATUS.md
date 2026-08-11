@@ -18,7 +18,7 @@ news and investigate topics using an indexed, trusted NASA corpus.
 | Checkpoint 3: clean extraction → chunks → OpenAI → Pinecone | Complete |
 | Checkpoint 3.1: RSS feed-to-index synchronization | Complete |
 | Checkpoint 4: inspectable semantic retrieval | Complete |
-| Checkpoint 5: grounded generated answers | Next |
+| Checkpoint 5: grounded generated answers | Complete |
 | Selector / SQL-RAG / aggregator / web fallback | Deferred |
 
 ## Verified corpus and index
@@ -36,8 +36,9 @@ multiple sentence-aware chunks.
 ## Current app capability
 
 - The UI supports deterministic recent/latest NASA-news questions backed by SQL.
-- The semantic corpus is populated, but there is **no retrieval UI or generated
-  answer path yet**.
+- Topic questions use semantic retrieval, then a bounded generated answer based
+  only on the retrieved NASA excerpts. The UI shows only server-validated NASA
+  source links selected from those results.
 - Asking a question never triggers ingestion; refresh is currently manual.
 
 ## Decisions that are currently locked for the MVP baseline
@@ -48,24 +49,35 @@ multiple sentence-aware chunks.
 - Chunk per Article, sentence-aware, about 1,500 characters, no overlap.
 - Include title context in embedding input.
 - Use deterministic vector IDs: `nasa:<articleId>:<chunkIndex>`.
-- Keep agentic routing, web fallback, hybrid search, reranking, and answer
-  generation out of the current synchronization increment.
+- Keep agentic routing, web fallback, hybrid search, and reranking deferred.
+
+## Grounded-answer evidence
+
+Verified live on August 11, 2026:
+
+- “What has NASA said about the Moon?” returned a source-linked answer based on
+  four retrieved NASA Moon Base articles.
+- “What has NASA said about Europa?” returned the no-result boundary rather
+  than making a claim from unrelated retrieved material.
+
+The answer model is `gpt-5-mini` through the Responses API, using strict
+structured output: `answer`, `sufficientEvidence`, and supplied source IDs.
+The server rejects invented source IDs, deduplicates source cards by canonical
+URL, and converts uncited or insufficient model output to the fixed no-result
+message. Retrieved text is labelled as untrusted reference data in the prompt.
 
 ## Immediate next objective
 
-Build a bounded **grounded answer** path from retrieved evidence:
+Evaluate the completed retrieval-and-answer baseline before deciding whether to
+add complexity:
 
 ```text
-Question → semantic retrieval → supplied NASA evidence
-→ grounded answer with clickable source links
+small evaluation set → identify actual retrieval/grounding failures
+→ decide whether reranking or later routing is justified
 ```
 
-It must treat retrieved content as untrusted data, answer only from supplied
-evidence, return a clear no-result response when retrieval is insufficient, and
-include the matching NASA source links. Do not add a selector or agent loop.
-
-Only then decide whether grounded answer generation and the eventual agentic
-flow solve an observed product need.
+Do not introduce a selector, SQL/RAG workers, aggregator, web fallback, or any
+other agentic framework before this baseline has evaluation evidence.
 
 ## Document map
 
@@ -88,6 +100,7 @@ npm run prepare:nasa-index
 npm run index:nasa -- --limit 10
 npm run sync:nasa-feed
 npm run query:nasa -- --question "What has NASA said about the Moon?"
+npm run dev
 npm test -- --run
 npm run lint
 ```

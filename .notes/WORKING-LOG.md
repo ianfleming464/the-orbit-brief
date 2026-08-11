@@ -370,3 +370,31 @@ the reliable structure; paragraph restoration is deferred.
 - Retrieval is deliberately a CLI inspection path only. Next is a bounded,
   source-linked answer-generation slice; selector, SQL/RAG agents, aggregation,
   and web fallback remain deferred.
+
+## 2026-08-11 — Checkpoint 5 grounded answer complete
+
+- Added one shared `retrieveNasa` service so the existing inspection CLI and
+  chat route execute the same dense Pinecone retrieval path. This is a small
+  code-boundary refactor, not a new worker or retrieval agent.
+- Topic questions now retrieve five candidates and make one `gpt-5-mini`
+  Responses API call. Its strict structured result contains an answer,
+  an evidence-sufficiency decision, and source IDs. The model receives only the
+  question and retrieved excerpts; no tools, SQL access, web access, or agent
+  loop are available to it.
+- Retrieved excerpts are explicitly marked as untrusted reference data, never
+  instructions. The server permits only source IDs that match the retrieved
+  records, deduplicates matching chunks into canonical NASA source cards, and
+  returns a fixed no-result message if evidence is insufficient, empty, or
+  uncited.
+- Live verification: “What has NASA said about the Moon?” returned a grounded
+  answer with four NASA Moon Base sources. “What has NASA said about Europa?”
+  returned the no-result boundary, despite Pinecone having lower-scoring
+  unrelated candidates. This demonstrates the intended baseline behavior, not
+  a claim that first-stage retrieval has perfect no-result detection.
+- Added unit coverage for untrusted-evidence labelling, source-ID validation
+  and de-duplication, and no-result conversion. Full verification passed:
+  33 unit tests, ESLint, and production build.
+- Decision: retain this single retrieval-and-synthesis path for the MVP. Do not
+  introduce a selector, SQL/RAG worker split, aggregator, web fallback,
+  hybrid/sparse index, or reranker until a small evaluation set identifies a
+  measured need.

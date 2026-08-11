@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildBriefingMessage, chatQuestionSchema, classifyQuestion, unsupportedQuestionMessage } from "@/lib/briefing";
+import { buildBriefingMessage, chatQuestionSchema, classifyQuestion } from "@/lib/briefing";
 
 describe("briefing question routing", () => {
   it.each([
@@ -12,9 +12,8 @@ describe("briefing question routing", () => {
     expect(classifyQuestion(question)).toBe("recent");
   });
 
-  it("keeps topic questions unsupported until semantic retrieval exists", () => {
-    expect(classifyQuestion("Tell me about Europa")).toBe("unsupported");
-    expect(unsupportedQuestionMessage).toContain("NASA news");
+  it("routes topic questions to semantic retrieval", () => {
+    expect(classifyQuestion("Tell me about Europa")).toBe("topic");
   });
 
   it("validates and trims a question at the API boundary", () => {

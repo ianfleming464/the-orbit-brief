@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
 import { db } from "@/lib/db";
 import {
   buildBriefingMessage,
   chatQuestionSchema,
   classifyQuestion,
-  unsupportedQuestionMessage,
 } from "@/lib/briefing";
+import { getIndexingEnv } from "@/lib/env";
+import { generateGroundedAnswer } from "@/lib/grounded-answer";
+import { retrieveNasa } from "@/lib/nasa-retrieval";
 
 export async function POST(request: Request) {
   let payload: unknown;
@@ -27,11 +30,18 @@ export async function POST(request: Request) {
     );
   }
 
-  if (classifyQuestion(parsed.data.question) === "unsupported") {
-    return NextResponse.json({ kind: "unsupported", message: unsupportedQuestionMessage });
-  }
-
   try {
+    if (classifyQuestion(parsed.data.question) === "topic") {
+      const matches = await retrieveNasa(parsed.data.question);
+      const env = getIndexingEnv();
+      const answer = await generateGroundedAnswer(
+        parsed.data.question,
+        matches,
+        new OpenAI({ apiKey: env.OPENAI_API_KEY }),
+      );
+      return NextResponse.json(answer);
+    }
+
     const articles = await db.article.findMany({
       orderBy: { publishedAt: "desc" },
       take: 5,

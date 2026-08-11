@@ -26,14 +26,11 @@ NASA RSS + official archive → SQL Article corpus → sentence-aware chunks
 → OpenAI embeddings → Pinecone semantic index
 ```
 
-Checkpoints 3 and 4 are complete: the SQL corpus contains 81 NASA articles
-dated May 15–August 11, 2026, represented by 204 Pinecone vectors. The current
-UI still supports deterministic recent-news questions; semantic retrieval is
-available as an inspection CLI, while generated answers remain separate work.
-
-The next implementation increment is a bounded grounded-answer path over the
-inspectable retrieval results. Selector agents and web fallback are not part of
-that increment.
+Checkpoints 3–5 are complete: the SQL corpus contains 81 NASA articles dated
+May 15–August 11, 2026, represented by 204 Pinecone vectors. Recent-news
+questions use SQL; topic questions retrieve from Pinecone, receive a bounded
+answer based only on the retrieved excerpts, and show validated NASA source
+links. Selector agents and web fallback remain deferred.
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
 For the single current-state view, start with
@@ -73,16 +70,20 @@ users can type a question or choose a small set of starter prompts such as
 article records; ingestion remains a separate refresh operation rather than a
 hidden side effect of every chat question.
 
-### Chat-first briefing shell
+### Chat-first briefing shell and grounded topic answers
 
-The current chat slice supports recent-news questions only. Questions containing
-“latest,” “recent,” “newest,” “today,” or “this week” query the five newest SQL
-articles and return clickable NASA source cards. Topic retrieval, embeddings,
-agents, and answer generation are intentionally deferred from the chat flow.
+Questions containing “latest,” “recent,” “newest,” “today,” or “this week” query
+the five newest SQL articles and return clickable NASA source cards. Other topic
+questions use semantic retrieval over the stored corpus, then a single bounded
+answer call that sees only those retrieved excerpts. The answer response uses
+strict structured output and only renders source links whose IDs match the
+retrieved metadata. It returns a clear no-result message when the model judges
+the retrieved evidence insufficient or cannot cite an allowed source.
 
 The chat never runs ingestion. To refresh the stored corpus during development,
 run `npm run ingest:nasa` separately. An empty database, unsupported question,
-loading request, and database failure each have an explicit user-facing state.
+no-result, loading request, and database failure each have an explicit
+user-facing state.
 
 ### Checkpoint 3 development
 

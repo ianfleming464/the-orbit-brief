@@ -13,9 +13,10 @@ type Article = {
 };
 
 type ChatResponse = {
-  kind: "briefing" | "empty" | "unsupported" | "error" | "invalid";
+  kind: "briefing" | "answer" | "no_result" | "empty" | "error" | "invalid";
   message: string;
   articles?: Article[];
+  sources?: Article[];
 };
 
 const starterPrompts = [
@@ -89,6 +90,7 @@ export function ChatShell() {
           <div className={response.kind === "error" ? "notice notice-error" : "answer-result"}>
             <p className="answer-copy">{response.message}</p>
             {response.articles && response.articles.length > 0 && <BriefingList articles={response.articles} />}
+            {response.sources && response.sources.length > 0 && <BriefingList articles={response.sources} />}
           </div>
         )}
       </div>

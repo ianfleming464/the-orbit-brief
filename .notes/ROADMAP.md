@@ -164,7 +164,7 @@ set, with chunk text, scores, article IDs, dates, and canonical URLs displayed.
 An Europa query returned lower-scoring unrelated material, so no numeric
 no-result threshold has been assumed from this small baseline.
 
-### 5. Add the grounded answer
+### 5. Add the grounded answer — complete
 
 Add answer generation only after retrieval is inspectable.
 
@@ -180,7 +180,15 @@ The answer policy should state that:
 Expected no-result wording should explain that the answer was not found in the
 NASA news currently indexed.
 
-### 6. Add simple routing
+Verified on August 11, 2026: a Moon question produced a grounded answer and
+clickable cards for the selected NASA sources. The known Europa corpus miss
+returned the fixed no-result boundary. The implementation uses a single
+`gpt-5-mini` Responses API call with strict structured output; it receives only
+the question plus retrieved excerpts, never tools or open-web access. Source
+IDs are checked against the retrieval results on the server before any link is
+shown. This is a bounded retrieval-and-synthesis function, not a RAG agent.
+
+### 6. Add simple routing — baseline complete
 
 Start with deterministic routing:
 
@@ -191,6 +199,13 @@ Start with deterministic routing:
 
 Do not add an autonomous agent loop. Add a selector model only if a measured
 product need remains after the deterministic flow works.
+
+The current deterministic route implements the baseline: recent/latest wording
+uses the SQL Article query, while other questions use Pinecone retrieval and
+the bounded grounded-answer function. It deliberately does not query SQL again
+after retrieval because vector metadata already contains the source card fields
+needed for this small corpus. Revisit an SQL source lookup only if metadata
+becomes insufficient or a concrete consistency issue is observed.
 
 ### 7. Evaluate reranking only if needed
 
