@@ -15,8 +15,8 @@ export default async function Home() {
   } catch {
     return (
       <main className="shell">
-        <header className="masthead"><p className="eyebrow">NASA / indexed news</p><h1>The Orbit Brief</h1></header>
-        <section className="notice notice-error" role="alert"><strong>The briefing is not connected yet.</strong><p>Check DATABASE_URL, run the Prisma migration, and load the NASA feed.</p></section>
+        <header className="masthead"><p className="eyebrow">Astronomy / indexed news</p><h1>The Orbit Brief</h1></header>
+        <section className="notice notice-error" role="alert"><strong>The briefing is not connected yet.</strong><p>Check DATABASE_URL, run the Prisma migration, and load the source feed.</p></section>
       </main>
     );
   }
@@ -24,13 +24,13 @@ export default async function Home() {
   return (
     <main className="shell">
       <header className="masthead">
-        <p className="eyebrow">NASA / indexed news</p>
+        <p className="eyebrow">Astronomy / indexed news</p>
         <h1>The Orbit Brief</h1>
-        <p className="dek">A quiet, source-first view of what NASA has published recently.</p>
+        <p className="dek">A quiet, source-first view of recent space news.</p>
       </header>
       <ChatShell />
       <section className="briefing" aria-labelledby="briefing-heading">
-        <div className="section-heading"><p className="eyebrow">Latest records</p><h2 id="briefing-heading">Recent NASA articles</h2></div>
+        <div className="section-heading"><p className="eyebrow">Latest records</p><h2 id="briefing-heading">Recent stories</h2></div>
         <BriefingList articles={articles} />
       </section>
     </main>

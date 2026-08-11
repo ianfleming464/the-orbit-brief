@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     payload = await request.json();
   } catch {
     return NextResponse.json(
-      { kind: "invalid", message: "Send a question about NASA news." },
+      { kind: "invalid", message: "Send a question about indexed space news." },
       { status: 400 },
     );
   }
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { kind: "error", message: "The NASA index could not be reached. Check the database and try again." },
+      { kind: "error", message: "The source index could not be reached. Check the database and try again." },
       { status: 500 },
     );
   }

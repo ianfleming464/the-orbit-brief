@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const chatQuestionSchema = z.object({
-  question: z.string().trim().min(1, "Ask a question about NASA news.").max(300),
+  question: z.string().trim().min(1, "Ask a question about indexed space news.").max(300),
 });
 
 export type QuestionIntent = "recent" | "topic";
@@ -14,6 +14,6 @@ export function classifyQuestion(question: string): QuestionIntent {
 }
 
 export function buildBriefingMessage(articleCount: number): string {
-  if (articleCount === 0) return "There are no NASA articles in the index yet.";
-  return `Here are the ${articleCount} most recent NASA stories currently indexed.`;
+  if (articleCount === 0) return "There are no stories in the index yet.";
+  return `Here are the ${articleCount} most recent stories currently indexed.`;
 }

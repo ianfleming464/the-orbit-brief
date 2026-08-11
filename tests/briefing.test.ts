@@ -22,7 +22,7 @@ describe("briefing question routing", () => {
   });
 
   it("describes empty and populated briefings deterministically", () => {
-    expect(buildBriefingMessage(0)).toContain("no NASA articles");
+    expect(buildBriefingMessage(0)).toContain("no stories");
     expect(buildBriefingMessage(5)).toContain("5 most recent");
   });
 });

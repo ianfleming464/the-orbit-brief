@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "The Orbit Brief",
-  description: "A source-grounded briefing of recently indexed NASA news.",
+  description: "A source-grounded briefing of recently indexed space news.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

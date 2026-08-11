@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { RetrievalMatch } from "@/lib/retrieval";
 
 export const ANSWER_MODEL = "gpt-5-mini";
-export const noResultMessage = "I couldn’t find an answer to that in the NASA news currently indexed.";
+export const noResultMessage = "I couldn’t find an answer to that in the currently indexed sources.";
 
 const answerSchema = z.object({
   answer: z.string().max(1_200),

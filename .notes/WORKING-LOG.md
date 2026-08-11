@@ -414,3 +414,13 @@ the reliable structure; paragraph restoration is deferred.
 - Decision: defer web search until the core agent workflow works. Older or
   out-of-corpus questions can later use an explicit `WEB` route/fallback with
   trusted-domain provenance, never a silent answer under `NEITHER`.
+
+## 2026-08-11 — Source-neutral product framing
+
+- Changed the public homepage, chat prompts, loading/no-result/error states,
+  source-link label, and page metadata from NASA-specific wording to
+  source-neutral astronomy/space-news wording.
+- The current corpus remains NASA-only and source cards still display their
+  actual publisher (`NASA`). This preserves provenance while allowing the
+  product identity to grow beyond one future source without implying that it
+  already does.

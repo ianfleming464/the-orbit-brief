@@ -20,11 +20,11 @@ type ChatResponse = {
 };
 
 const starterPrompts = [
-  "Show me the latest NASA news.",
-  "What did NASA publish this week?",
-  "What are the most recent NASA stories?",
-  "What’s new in NASA news?",
-  "Give me today’s NASA briefing.",
+  "Show me the latest space news.",
+  "What was published this week?",
+  "What are the most recent stories?",
+  "What’s new in the index?",
+  "Give me today’s space briefing.",
 ];
 
 export function ChatShell() {
@@ -67,13 +67,13 @@ export function ChatShell() {
           <p className="eyebrow">Ask the index</p>
           <h2 id="question-heading">What should we look up?</h2>
         </div>
-        <p className="chat-note">Answers come from stored NASA news. Refreshes happen separately.</p>
+        <p className="chat-note">Answers come from the indexed source corpus. Refreshes happen separately.</p>
       </div>
 
       <form className="question-form" onSubmit={handleSubmit}>
         <label htmlFor="question">Your question</label>
         <div className="question-row">
-          <input id="question" name="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Show me the latest NASA news" maxLength={300} disabled={isLoading} />
+          <input id="question" name="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask about recent space news" maxLength={300} disabled={isLoading} />
           <button type="submit" disabled={isLoading || !question.trim()}>{isLoading ? "Looking…" : "Look up"}</button>
         </div>
       </form>
@@ -85,7 +85,7 @@ export function ChatShell() {
       </div>
 
       <div className="answer-area" aria-live="polite">
-        {isLoading && <p className="answer-status" role="status">Looking through the latest indexed NASA stories…</p>}
+        {isLoading && <p className="answer-status" role="status">Looking through the latest indexed stories…</p>}
         {!isLoading && response && (
           <div className={response.kind === "error" ? "notice notice-error" : "answer-result"}>
             <p className="answer-copy">{response.message}</p>
