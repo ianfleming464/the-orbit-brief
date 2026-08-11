@@ -398,3 +398,19 @@ the reliable structure; paragraph restoration is deferred.
   introduce a selector, SQL/RAG worker split, aggregator, web fallback,
   hybrid/sparse index, or reranker until a small evaluation set identifies a
   measured need.
+
+## 2026-08-11 — Agentic architecture direction approved
+
+- Clarified the product goal: the selector → SQL/RAG → aggregator architecture
+  is the point of the capstone and learning exercise. The direct grounded-RAG
+  route is now the useful working control condition, not the final destination.
+- Agreed first workflow scope: a structured selector chooses `SQL`, `RAG`,
+  `BOTH`, or `NEITHER` and records a concise reason; selected specialists run;
+  an aggregator returns the final grounded, source-linked answer.
+- Decision: keep the SQL specialist constrained to a validated structured
+  Article query plan executed with Prisma. This keeps the agent boundary and
+  learning value without adding unsafe arbitrary text-to-SQL execution to a
+  one-table MVP.
+- Decision: defer web search until the core agent workflow works. Older or
+  out-of-corpus questions can later use an explicit `WEB` route/fallback with
+  trusted-domain provenance, never a silent answer under `NEITHER`.
