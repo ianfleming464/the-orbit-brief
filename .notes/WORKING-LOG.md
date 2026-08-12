@@ -452,6 +452,17 @@ the reliable structure; paragraph restoration is deferred.
 - `sql.ts` imports Orbit's `db` only to execute fixed safe calls; it does not
   import the old Prisma client/type or medical `Message` type.
 
+## 2026-08-12 — RAG specialist refactored
+
+- Replaced the copied clinical-note and reranking dependency with a thin,
+  deterministic wrapper around the existing `retrieveNasa` Pinecone path.
+- The specialist returns ordered typed retrieval evidence—scores, chunks, and
+  article provenance—not context prose or a final answer. This lets the later
+  aggregator own answer/citation decisions.
+- Decision: keep baseline dense retrieval at `topK=5` and do not introduce a
+  reranker yet. A reranker must be evaluated as a visible experiment only when
+  first-stage retrieval returns the right evidence but orders it poorly.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
