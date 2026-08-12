@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { z } from "zod";
 
-import { db } from "@/lib/db";
-import {
-  buildBriefingMessage,
-  chatQuestionSchema,
-  classifyQuestion,
-} from "@/lib/briefing";
-import { getIndexingEnv } from "@/lib/env";
-import { generateGroundedAnswer } from "@/lib/grounded-answer";
-import { retrieveNasa } from "@/lib/nasa-retrieval";
+import { aggregate } from "@/lib/agents/aggregator";
+import { select } from "@/lib/agents/selector";
+import { runRag } from "@/lib/agents/rag";
+import { runSql } from "@/lib/agents/sql";
+import { chatQuestionSchema } from "@/lib/briefing";
+
+const chatRequestSchema = chatQuestionSchema.extend({
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().trim().min(1).max(2_000),
+  })).max(6).default([]),
+});
+
+const neitherMessage = "I can help with questions about the space-news sources currently indexed here.";
 
 export async function POST(request: Request) {
   let payload: unknown;
@@ -22,7 +27,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const parsed = chatQuestionSchema.safeParse(payload);
+  const parsed = chatRequestSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json(
       { kind: "invalid", message: parsed.error.issues[0]?.message ?? "Send a valid question." },
@@ -31,31 +36,37 @@ export async function POST(request: Request) {
   }
 
   try {
-    if (classifyQuestion(parsed.data.question) === "topic") {
-      const matches = await retrieveNasa(parsed.data.question);
-      const env = getIndexingEnv();
-      const answer = await generateGroundedAnswer(
-        parsed.data.question,
-        matches,
-        new OpenAI({ apiKey: env.OPENAI_API_KEY }),
-      );
-      return NextResponse.json(answer);
+    const plan = await select(parsed.data.question, parsed.data.messages);
+    console.info("[workflow]", JSON.stringify({
+      route: plan.route,
+      useSql: plan.useSql,
+      useRag: plan.useRag,
+      reason: plan.reason,
+    }));
+
+    if (plan.clarificationQuestion) {
+      return NextResponse.json({ kind: "clarification", message: plan.clarificationQuestion });
     }
 
-    const articles = await db.article.findMany({
-      orderBy: { publishedAt: "desc" },
-      take: 5,
-      select: { id: true, title: true, source: true, canonicalUrl: true, publishedAt: true },
-    });
+    if (!plan.useSql && !plan.useRag) {
+      return NextResponse.json({ kind: "no_result", message: neitherMessage, sources: [] });
+    }
 
-    return NextResponse.json({
-      kind: articles.length === 0 ? "empty" : "briefing",
-      message: buildBriefingMessage(articles.length),
-      articles,
-    });
-  } catch {
+    const [sqlResult, ragResult] = await Promise.all([
+      plan.useSql ? runSql(parsed.data.question, parsed.data.messages) : undefined,
+      plan.useRag ? runRag(plan.semanticQuery!) : undefined,
+    ]);
+
+    return NextResponse.json(await aggregate({
+      question: parsed.data.question,
+      history: parsed.data.messages,
+      sqlResult,
+      ragResult,
+    }));
+  } catch (error) {
+    console.error("[workflow] failed", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
-      { kind: "error", message: "The source index could not be reached. Check the database and try again." },
+      { kind: "error", message: "The request could not be completed. Check configured services and try again." },
       { status: 500 },
     );
   }

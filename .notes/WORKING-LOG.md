@@ -480,6 +480,45 @@ the reliable structure; paragraph restoration is deferred.
   supported value and relies on its concise-answer prompt plus output length
   limit rather than an unsupported `low` setting.
 
+## 2026-08-12 — Agent-module documentation consolidated
+
+- Updated project status, roadmap, architecture context, README, and the local
+  handover to distinguish completed agent modules from the still-direct public
+  chat route.
+- Next increment is now explicit: validate bounded client-side history, invoke
+  selector, run SQL/RAG in parallel only for BOTH, and return the existing JSON
+  aggregator result. No web agent, streaming, reranking, or route redesign is
+  part of that integration slice.
+
+## 2026-08-12 — Core agent workflow integrated
+
+- Replaced the chat route's direct deterministic branches with the capstone
+  workflow: validated question/history → selector → selected SQL and/or RAG
+  specialists → JSON aggregator. `NEITHER` and clarification return without
+  calling specialists; `BOTH` uses `Promise.all` for parallel independent work.
+- The client now sends at most six in-memory user/assistant messages with each
+  request. It does not persist a transcript. The existing `{ kind, message,
+  sources? }` JSON contract and source-card UI remain intact, so this is an
+  architecture change rather than a frontend redesign.
+- Added concise structured development logs: `[workflow]` records route and
+  reason; existing selector/SQL/RAG/aggregator logs record plans, result
+  summaries, and selected source IDs. Raw article excerpts and secrets are not
+  logged.
+- A live selector output once combined a clarification with an executable BOTH
+  plan. Decision: reject contradictory plans at the schema boundary, while the
+  selector normalizes that accidental clarification to `null` when executable
+  booleans are present and logs the correction. Concrete date-and-topic
+  questions therefore remain routable rather than returning a 500 error.
+- Live route checks: SQL count for June returned 23; RAG Moon Base returned a
+  four-card grounded answer; BOTH June + Moon Base returned a two-card answer;
+  France returned the corpus boundary. Full verification: 50 tests, ESLint,
+  and production build pass.
+- Important limitation retained deliberately: BOTH combines independent SQL and
+  dense-vector evidence. Query wording carries date constraints into RAG, but
+  there is no Pinecone metadata filter yet. The aggregator is instructed not to
+  claim a joined/filter-applied result. Evaluate this before adding filtering,
+  reranking, or web search.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user

@@ -85,7 +85,9 @@ Rules:
 - For list, choose newest unless the user asks for oldest; use limit 10 unless
   the user requests a smaller number. For count and coverage, still return a
   valid limit even though it is not used.
-- titleQuery is only for explicit title lookups, not semantic topics.
+- titleQuery is only for a request that explicitly identifies an article by its
+  title. A topic phrase such as “Moon Base” is not a title lookup: leave
+  titleQuery null, even when the question also asks about that topic.
 - Return data matching the schema exactly.`;
 
 export function startOfUtcDay(date: string): Date {

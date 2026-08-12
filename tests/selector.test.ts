@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatConversationHistory, routeForPlan, selectorPlanSchema } from "@/lib/agents/selector";
+import { formatConversationHistory, normalizeSelectorPlan, routeForPlan, selectorPlanSchema } from "@/lib/agents/selector";
 
 describe("selector plan contract", () => {
   it.each([
@@ -40,5 +40,15 @@ describe("selector plan contract", () => {
     expect(formatted).not.toContain("Message 1");
     expect(formatted).toContain("Message 2");
     expect(formatted).toContain("Message 7");
+  });
+
+  it("keeps an executable route when a model returns a contradictory clarification", () => {
+    expect(normalizeSelectorPlan({
+      useSql: true,
+      useRag: true,
+      reason: "The question has both a date and topic.",
+      semanticQuery: "Moon Base in June",
+      clarificationQuestion: "Which June?",
+    }).clarificationQuestion).toBeNull();
   });
 });

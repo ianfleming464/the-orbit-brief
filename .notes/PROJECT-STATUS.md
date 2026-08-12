@@ -1,6 +1,6 @@
 # The Orbit Brief — Project Status
 
-**Last updated:** 2026-08-11  
+**Last updated:** 2026-08-12
 **Use this page first** for the current project state. Use the working log for
 the supporting chronology and evidence.
 
@@ -19,7 +19,8 @@ news and investigate topics using an indexed, trusted NASA corpus.
 | Checkpoint 3.1: RSS feed-to-index synchronization | Complete |
 | Checkpoint 4: inspectable semantic retrieval | Complete |
 | Checkpoint 5: grounded generated answers | Complete |
-| Selector / SQL-RAG / aggregator workflow | Next, approved direction |
+| Selector / SQL-RAG / aggregator modules | Complete and chat-integrated |
+| Chat-route agent orchestration | Complete baseline; manual evaluation next |
 | Allowlisted web-search fallback | Deferred until core workflow works |
 
 ## Verified corpus and index
@@ -36,10 +37,16 @@ multiple sentence-aware chunks.
 
 ## Current app capability
 
-- The UI supports deterministic recent/latest NASA-news questions backed by SQL.
-- Topic questions use semantic retrieval, then a bounded generated answer based
-  only on the retrieved NASA excerpts. The UI shows only server-validated NASA
-  source links selected from those results.
+- Each request is validated, then the selector chooses `SQL`, `RAG`, `BOTH`,
+  or `NEITHER`. Selected specialists return typed evidence; the JSON aggregator
+  returns the answer and only server-validated source cards.
+- The browser retains at most six in-memory user/assistant messages for
+  follow-ups. This context is not persisted as a transcript.
+- `BOTH` runs SQL and RAG concurrently. They are independent evidence sets:
+  the aggregator must not claim an SQL constraint was applied to Pinecone
+  retrieval. Hard vector metadata filters remain deferred.
+- Terminal logs show the selector plan, SQL plan, RAG result summary, and
+  aggregator source IDs, without raw article excerpts or secrets.
 - Asking a question never triggers ingestion; refresh is currently manual.
 
 ## Decisions that are currently locked for the MVP baseline
@@ -50,9 +57,8 @@ multiple sentence-aware chunks.
 - Chunk per Article, sentence-aware, about 1,500 characters, no overlap.
 - Include title context in embedding input.
 - Use deterministic vector IDs: `nasa:<articleId>:<chunkIndex>`.
-- The next product phase is intentionally agentic: selector → SQL and/or RAG
-  specialist → aggregator. It is the capstone's learning objective, not
-  accidental complexity.
+- The agent modules follow selector → SQL and/or RAG specialist → aggregator.
+  This is the capstone's learning objective, not accidental complexity.
 - Keep web fallback, hybrid search, and reranking deferred until the core
   agent workflow has been demonstrated.
 
@@ -65,16 +71,16 @@ Verified live on August 11, 2026:
 - “What has NASA said about Europa?” returned the no-result boundary rather
   than making a claim from unrelated retrieved material.
 
-The answer model is `gpt-5-mini` through the Responses API, using strict
-structured output: `answer`, `sufficientEvidence`, and supplied source IDs.
+The integrated aggregator uses `gpt-4o` at temperature 0 through the Responses
+API, using strict structured output: `answer`, `sufficientEvidence`, and
+supplied source IDs. Selector and SQL planning use `gpt-5-mini`.
 The server rejects invented source IDs, deduplicates source cards by canonical
 URL, and converts uncited or insufficient model output to the fixed no-result
 message. Retrieved text is labelled as untrusted reference data in the prompt.
 
 ## Immediate next objective
 
-Design and implement the smallest explainable agent workflow, using the proven
-direct path as the control condition:
+Manually evaluate the integrated four-route workflow in the development UI:
 
 ```text
 question → selector (SQL | RAG | BOTH | NEITHER, with reason)
@@ -82,11 +88,10 @@ question → selector (SQL | RAG | BOTH | NEITHER, with reason)
 → aggregator → source-linked answer
 ```
 
-The selector decision and reason must be structured and logged during
-development. Use structured query plans and Prisma for the SQL specialist
-instead of executing model-authored raw SQL against this simple Article corpus.
-The web-search fallback is a separate later `WEB` capability—not a hidden
-meaning of `NEITHER`—and should not be added in the first workflow increment.
+Record the route, terminal trace, answer, and source cards for the SQL, RAG,
+BOTH, and NEITHER cases in `EVAL.md`. Pay particular attention to whether the
+cited sources support date-bound hybrid answers. The web-search fallback is a
+separate later `WEB` capability—not a hidden meaning of `NEITHER`.
 
 The first workflow returns complete validated JSON with a truthful “Thinking…”
 state. Streaming the aggregator is a separate polish/demo checkpoint after the

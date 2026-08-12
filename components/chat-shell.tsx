@@ -13,11 +13,15 @@ type Article = {
 };
 
 type ChatResponse = {
-  kind: "briefing" | "answer" | "no_result" | "empty" | "error" | "invalid";
+  kind: "briefing" | "answer" | "no_result" | "clarification" | "empty" | "error" | "invalid";
   message: string;
   articles?: Article[];
   sources?: Article[];
 };
+
+type ConversationMessage = { role: "user" | "assistant"; content: string };
+
+const MAX_HISTORY_MESSAGES = 6;
 
 const starterPrompts = [
   "Show me the latest space news.",
@@ -30,6 +34,7 @@ const starterPrompts = [
 export function ChatShell() {
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<ChatResponse | null>(null);
+  const [history, setHistory] = useState<ConversationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   async function ask(nextQuestion: string) {
@@ -44,10 +49,20 @@ export function ChatShell() {
       const result = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: trimmedQuestion }),
+        body: JSON.stringify({ question: trimmedQuestion, messages: history }),
       });
       const data = (await result.json()) as ChatResponse;
       setResponse(data);
+      if (result.ok && data.message) {
+        setHistory((previous) => {
+          const nextHistory: ConversationMessage[] = [
+            ...previous,
+            { role: "user", content: trimmedQuestion },
+            { role: "assistant", content: data.message },
+          ];
+          return nextHistory.slice(-MAX_HISTORY_MESSAGES);
+        });
+      }
     } catch {
       setResponse({ kind: "error", message: "The briefing request could not be completed. Try again in a moment." });
     } finally {
@@ -85,7 +100,7 @@ export function ChatShell() {
       </div>
 
       <div className="answer-area" aria-live="polite">
-        {isLoading && <p className="answer-status" role="status">Looking through the latest indexed stories…</p>}
+        {isLoading && <p className="answer-status" role="status">Thinking through the indexed sources…</p>}
         {!isLoading && response && (
           <div className={response.kind === "error" ? "notice notice-error" : "answer-result"}>
             <p className="answer-copy">{response.message}</p>

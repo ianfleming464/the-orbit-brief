@@ -20,19 +20,23 @@ user question
   architecture.
 - The selector returns structured, Zod-validated routing data: `SQL`, `RAG`,
   `BOTH`, or `NEITHER`, plus a concise reason and an optional improved semantic
-  query. Its decision and reason are logged during development.
+  query. Its decision and reason are logged during development. It is now
+  integrated into the chat route with a maximum of six in-memory messages;
+  browser history is not persisted.
 - `sql.ts` handles exact structured Article queries: dates, source, counts,
-  titles, and indexed-coverage questions. For this one-table MVP, it should
-  produce a validated structured query plan executed through Prisma—not
-  model-authored raw SQL.
+  titles, and indexed-coverage questions. It produces a validated structured
+  query plan executed through fixed Prisma calls—not model-authored raw SQL.
 - `rag.ts` handles semantic retrieval over indexed article content and returns
-  evidence/source records, not a final answer.
-- `aggregator.ts` receives the selected specialist outputs and produces the
-  final grounded response and validated citations. Streaming is optional; do
-  not add a streaming library solely to mirror the medical project.
-- `BOTH` must be implemented honestly: the aggregator should explain the
-  limits of its SQL and semantic evidence rather than pretend parallel results
-  are a perfectly joined data set.
+  ordered evidence/source records, not a final answer. Baseline retrieval is
+  dense-only `topK=5`; there is no reranker yet.
+- `aggregator.ts` receives the selected specialist outputs and produces a
+  final JSON grounded response with validated citations. It uses `gpt-4o` at
+  temperature 0 because `gpt-5-mini` rejects the temperature parameter.
+  Streaming remains a later dedicated polish step.
+- `BOTH` is implemented honestly: SQL and RAG run concurrently, and the
+  aggregator is forbidden from claiming that a SQL constraint automatically
+  filtered vector results. A date can appear in the semantic query wording,
+  but this is not yet a Pinecone metadata filter.
 
 ## Current sequencing
 
@@ -42,9 +46,8 @@ user question
   retrieval.
 - Checkpoint 4: make retrieval independently verifiable before answer
   generation.
-- The next phase is to introduce selector/SQL/RAG/BOTH/NEITHER interfaces and
-  the aggregator flow incrementally. Do not overengineer workers, queues,
-  durable run storage, or a framework around these four functions.
+- Evaluate the integrated selector/SQL/RAG/BOTH/NEITHER workflow before adding
+  workers, queues, durable run storage, web tools, or a workflow framework.
 
 ## First agent-workflow question set
 

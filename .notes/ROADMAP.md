@@ -207,7 +207,7 @@ after retrieval because vector metadata already contains the source card fields
 needed for this small corpus. Revisit an SQL source lookup only if metadata
 becomes insufficient or a concrete consistency issue is observed.
 
-### 6.1. Build the agentic workflow — next, approved direction
+### 6.1. Build the agentic workflow — complete baseline
 
 This is the capstone learning objective. Adapt the proven medical-RAG shape in
 the smallest form suitable for one NASA `Article` corpus:
@@ -218,16 +218,30 @@ question → selector (SQL | RAG | BOTH | NEITHER, with reason)
 ```
 
 - The selector uses structured Zod output and logs its chosen route and reason.
-- `sql.ts` uses a validated structured Article query plan and Prisma; do not add
-  arbitrary model-authored raw SQL merely to duplicate the medical app.
-- `rag.ts` wraps inspectable Pinecone retrieval and returns evidence, not prose.
-- `aggregator.ts` combines SQL rows and/or RAG evidence into the final grounded
-  answer. Do not add streaming or an agent framework unless it makes this
-  initial vertical slice clearer.
+- `sql.ts` uses a validated structured Article query plan and fixed Prisma
+  calls; it does not execute arbitrary model-authored raw SQL.
+- `rag.ts` wraps inspectable Pinecone retrieval and returns evidence, not prose;
+  baseline is dense `topK=5` without reranking.
+- `aggregator.ts` combines SQL rows and/or RAG evidence into a final grounded
+  JSON answer. It validates source IDs and source cards; it does not stream.
 - Start with SQL, RAG, BOTH, and NEITHER. Preserve the existing direct path as
   the baseline/control for comparison.
 - Record a small route-evaluation set, including the examples in
   `AGENT-CONTEXT.md`, before expanding the architecture.
+
+Implementation evidence on August 12, 2026: the chat route validates a question
+plus at most six in-memory history messages, calls the selector, short-circuits
+clarification/NEITHER, and calls the selected specialists. SQL and RAG run via
+`Promise.all` only for BOTH; the aggregator returns the existing JSON answer
+and source-card contract. Live route checks verified a June SQL count (23), a
+Moon Base RAG answer with four cards, a June + Moon Base BOTH answer with two
+June cards, and an out-of-corpus NEITHER boundary. Unit tests cover BOTH,
+NEITHER, invalid history, and selector contradiction handling.
+
+Important limitation: BOTH combines independent SQL and dense-vector evidence.
+The date wording is placed in the semantic query, but Pinecone is not yet
+hard-filtered by metadata. The aggregator must not claim a database filter was
+applied to retrieval. Evaluate this before adding metadata-filter support.
 
 An allowlisted web-search specialist is a later extension for older or
 out-of-corpus questions. It must be explicit as `WEB` (with provenance), not a

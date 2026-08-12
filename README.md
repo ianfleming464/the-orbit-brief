@@ -28,15 +28,33 @@ NASA RSS + official archive → SQL Article corpus → sentence-aware chunks
 
 Checkpoints 3–5 are complete: the SQL corpus contains 81 NASA articles dated
 May 15–August 11, 2026, represented by 204 Pinecone vectors. Recent-news
-questions use SQL; topic questions retrieve from Pinecone, receive a bounded
-answer based only on the retrieved excerpts, and show validated NASA source
-links. Selector agents and web fallback remain deferred.
+questions use an agentic SQL/RAG route, receive a bounded answer based only on
+typed specialist evidence, and show validated NASA source links. The selector,
+SQL specialist, RAG specialist, and JSON aggregator are integrated and tested.
+Web fallback remains deferred.
 
 The complete build order is in [.notes/ROADMAP.md](.notes/ROADMAP.md).
 For the single current-state view, start with
 [.notes/PROJECT-STATUS.md](.notes/PROJECT-STATUS.md).
 The intended selector/SQL/RAG/aggregator architecture and future web-search
 fallback are recorded in [.notes/AGENT-CONTEXT.md](.notes/AGENT-CONTEXT.md).
+
+### Agentic chat workflow
+
+The capstone workflow modules are now separate and inspectable:
+
+```text
+selector.ts → SQL and/or RAG specialist → aggregator.ts → JSON answer
+```
+
+The chat API accepts a question plus at most six in-memory conversation
+messages. The selector produces a Zod-validated plan and terminal trace. The
+SQL specialist translates a Zod query plan into fixed Prisma calls; the RAG
+specialist returns ordered Pinecone evidence without reranking; the aggregator
+returns a grounded JSON answer with server-validated source cards. `BOTH` runs
+SQL and RAG concurrently, but does not yet apply SQL date/source constraints as
+Pinecone metadata filters; the aggregator is explicitly told not to imply that
+it did.
 
 The implementation uses a hosted PostgreSQL database through Prisma as the
 canonical Article store. `BACKFILL_DAYS` controls the manual RSS/archive window

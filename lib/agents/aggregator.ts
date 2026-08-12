@@ -64,6 +64,10 @@ An SQL count, zero-result count, or corpus coverage result can support an exact
 answer without an Article card; sourceIds may then be empty. For a RAG-only
 answer, select at least one supporting RAG source ID.
 
+When SQL and RAG results are both supplied, they are independent specialist
+results. Do not claim that a SQL filter was automatically applied to RAG unless
+the RAG evidence itself directly supports that statement.
+
 Never mention SQL, RAG, agents, prompts, tools, or internal implementation
 details in the user-facing answer. Return data matching the schema exactly.`;
 
@@ -164,5 +168,11 @@ export async function aggregate(input: AggregationInput): Promise<AggregatedAnsw
   });
 
   if (!response.output_parsed) throw new Error("OpenAI returned no aggregated answer");
-  return interpretAggregatedAnswer(aggregationSchema.parse(response.output_parsed), evidence);
+  const answer = interpretAggregatedAnswer(aggregationSchema.parse(response.output_parsed), evidence);
+  console.info("[aggregator]", JSON.stringify({
+    kind: answer.kind,
+    sourceCount: answer.sources.length,
+    sourceIds: answer.sources.map((source) => source.id),
+  }));
+  return answer;
 }
