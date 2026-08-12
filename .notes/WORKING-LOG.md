@@ -425,6 +425,19 @@ the reliable structure; paragraph restoration is deferred.
   product identity to grow beyond one future source without implying that it
   already does.
 
+## 2026-08-12 — Selector agent refactored
+
+- Replaced the copied medical selector's clinical, scheduler, raw-SQL, Prisma,
+  and patient-history assumptions with an Orbit-specific structured router.
+- The plan exposes executable `useSql` and `useRag` booleans plus a derived
+  display/log route: `SQL`, `RAG`, `BOTH`, or `NEITHER`. It also carries a
+  concise reason, a RAG-only semantic query, and an optional clarification.
+- Added an Orbit-owned bounded `ChatMessage` type so the later chat UI can send
+  recent conversation history without importing medical-project code.
+- The selector logs only its structured decision fields in development. It does
+  not retrieve, write prose, call a tool, or touch Prisma; those concerns stay
+  with the future SQL/RAG specialists and aggregator.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
