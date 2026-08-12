@@ -438,6 +438,20 @@ the reliable structure; paragraph restoration is deferred.
   not retrieve, write prose, call a tool, or touch Prisma; those concerns stay
   with the future SQL/RAG specialists and aggregator.
 
+## 2026-08-12 — SQL specialist refactored
+
+- Replaced copied model-authored raw SQL with a constrained Article query-plan
+  agent: an LLM returns Zod-validated operation/filter fields and fixed Prisma
+  calls execute them.
+- The prompt describes the usable Article capabilities (`source`, `title`,
+  `publishedAt`, count/list/coverage) rather than pasting a Prisma schema or
+  teaching the model database syntax. `body` is explicitly excluded from
+  semantic search, preserving that responsibility for RAG.
+- Date filters are inclusive UTC calendar days in the model plan and translated
+  to a `gte`/next-day-`lt` Prisma range to avoid end-of-day timezone ambiguity.
+- `sql.ts` imports Orbit's `db` only to execute fixed safe calls; it does not
+  import the old Prisma client/type or medical `Message` type.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
