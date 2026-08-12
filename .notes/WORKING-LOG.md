@@ -463,6 +463,23 @@ the reliable structure; paragraph restoration is deferred.
   reranker yet. A reranker must be evaluated as a visible experiment only when
   first-stage retrieval returns the right evidence but orders it poorly.
 
+## 2026-08-12 — JSON aggregator refactored
+
+- Replaced the copied streaming medical aggregator with a JSON-only, structured
+  synthesis agent that accepts typed SQL and/or RAG specialist results.
+- Its Zod output contains an answer, evidence-sufficiency decision, and source
+  IDs. The server validates source IDs against supplied evidence, deduplicates
+  source cards by canonical URL, and requires a citation for RAG-only answers.
+  Exact SQL count/coverage answers may correctly have no article card.
+- RAG excerpts are labelled untrusted reference data. The aggregator neither
+  routes nor retrieves, and it does not expose internal workflow details.
+- Live verification showed `gpt-5-mini` rejects the `temperature` parameter.
+  Decision: use `gpt-4o` for aggregation so the requested `temperature: 0` is
+  actually enforced; retain `gpt-5-mini` for selector and SQL planning.
+- `gpt-4o` accepts only `medium` text verbosity, so the aggregator uses that
+  supported value and relies on its concise-answer prompt plus output length
+  limit rather than an unsupported `low` setting.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
