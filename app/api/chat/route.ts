@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { aggregate } from "@/lib/agents/aggregator";
 import { select } from "@/lib/agents/selector";
-import { runRag } from "@/lib/agents/rag";
+import { HYBRID_RAG_CANDIDATE_TOP_K, restrictRagToArticleIds, runRag } from "@/lib/agents/rag";
 import { runSql } from "@/lib/agents/sql";
 import { chatQuestionSchema } from "@/lib/briefing";
 
@@ -37,12 +37,12 @@ export async function POST(request: Request) {
 
   try {
     const plan = await select(parsed.data.question, parsed.data.messages);
-    console.info("[workflow]", JSON.stringify({
+    console.info("\n[workflow]", {
       route: plan.route,
       useSql: plan.useSql,
       useRag: plan.useRag,
       reason: plan.reason,
-    }));
+    });
 
     if (plan.clarificationQuestion) {
       return NextResponse.json({ kind: "clarification", message: plan.clarificationQuestion });
@@ -52,10 +52,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ kind: "no_result", message: neitherMessage, sources: [] });
     }
 
-    const [sqlResult, ragResult] = await Promise.all([
+    const [sqlResult, retrievedRagResult] = await Promise.all([
       plan.useSql ? runSql(parsed.data.question, parsed.data.messages) : undefined,
-      plan.useRag ? runRag(plan.semanticQuery!) : undefined,
+      plan.useRag ? runRag(plan.semanticQuery!, plan.useSql ? HYBRID_RAG_CANDIDATE_TOP_K : undefined) : undefined,
     ]);
+
+    const ragResult = sqlResult?.kind === "list" && retrievedRagResult
+      ? restrictRagToArticleIds(retrievedRagResult, sqlResult.articles.map((article) => article.id))
+      : retrievedRagResult;
+
+    if (sqlResult?.kind === "list" && retrievedRagResult) {
+      console.info("\n[workflow: hybrid evidence]", {
+        sqlEligibleArticles: sqlResult.articles.length,
+        retrievedCandidates: retrievedRagResult.matches.length,
+        retainedCandidates: ragResult?.matches.length ?? 0,
+        constraint: "Only RAG chunks from SQL-listed articles are sent to the aggregator.",
+      });
+    }
 
     return NextResponse.json(await aggregate({
       question: parsed.data.question,

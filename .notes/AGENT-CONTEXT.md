@@ -33,10 +33,11 @@ user question
   final JSON grounded response with validated citations. It uses `gpt-4o` at
   temperature 0 because `gpt-5-mini` rejects the temperature parameter.
   Streaming remains a later dedicated polish step.
-- `BOTH` is implemented honestly: SQL and RAG run concurrently, and the
-  aggregator is forbidden from claiming that a SQL constraint automatically
-  filtered vector results. A date can appear in the semantic query wording,
-  but this is not yet a Pinecone metadata filter.
+- `BOTH` is implemented as a small constrained join: SQL and RAG run
+  concurrently; SQL list results supply eligible Article IDs; the app removes
+  any retrieved chunk outside that set before aggregation. It retrieves 20
+  candidates, then preserves the first five eligible chunks in vector order.
+  This enforces user-stated dates/sources without Pinecone metadata filtering.
 
 ## Current sequencing
 
@@ -46,8 +47,9 @@ user question
   retrieval.
 - Checkpoint 4: make retrieval independently verifiable before answer
   generation.
-- Evaluate the integrated selector/SQL/RAG/BOTH/NEITHER workflow before adding
-  workers, queues, durable run storage, web tools, or a workflow framework.
+- The first manual route evaluation passed. Do not add workers, queues, durable
+  run storage, web tools, or a workflow framework before a concrete product
+  need is demonstrated.
 
 ## First agent-workflow question set
 

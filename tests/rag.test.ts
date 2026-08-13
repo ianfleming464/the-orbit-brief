@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createRagResult, DEFAULT_RAG_TOP_K } from "@/lib/agents/rag";
+import { createRagResult, DEFAULT_RAG_TOP_K, restrictRagToArticleIds } from "@/lib/agents/rag";
 import type { RetrievalMatch } from "@/lib/retrieval";
 
 const matches: RetrievalMatch[] = [
@@ -27,5 +27,12 @@ describe("RAG specialist contract", () => {
 
   it("uses a bounded default candidate count", () => {
     expect(DEFAULT_RAG_TOP_K).toBe(5);
+  });
+
+  it("keeps only SQL-eligible chunks while preserving vector order", () => {
+    const marsMatch = { ...matches[0], id: "nasa:mars:0", articleId: "mars", title: "Mars" };
+    const result = createRagResult("Moon Base", [...matches, marsMatch]);
+
+    expect(restrictRagToArticleIds(result, ["mars"], 5).matches).toEqual([marsMatch]);
   });
 });

@@ -10,6 +10,7 @@ import { retrieveNasa } from "@/lib/nasa-retrieval";
 import type { RetrievalMatch } from "@/lib/retrieval";
 
 export const DEFAULT_RAG_TOP_K = 5;
+export const HYBRID_RAG_CANDIDATE_TOP_K = 20;
 
 export type RagResult = {
   semanticQuery: string;
@@ -21,6 +22,23 @@ export function createRagResult(semanticQuery: string, matches: RetrievalMatch[]
   return { semanticQuery, retrievalMethod: "vector", matches };
 }
 
+/**
+ * Applies an exact Article-store constraint after a broader vector retrieval.
+ * This preserves Pinecone similarity order while ensuring an aggregator only
+ * sees chunks from the SQL-selected records.
+ */
+export function restrictRagToArticleIds(
+  result: RagResult,
+  articleIds: Iterable<string>,
+  topK = DEFAULT_RAG_TOP_K,
+): RagResult {
+  const allowedIds = new Set(articleIds);
+  return createRagResult(
+    result.semanticQuery,
+    result.matches.filter((match) => allowedIds.has(match.articleId)).slice(0, topK),
+  );
+}
+
 export async function runRag(semanticQuery: string, topK = DEFAULT_RAG_TOP_K): Promise<RagResult> {
   if (!semanticQuery.trim()) throw new Error("A semantic query is required");
   if (!Number.isInteger(topK) || topK < 1 || topK > 20) {
@@ -30,7 +48,7 @@ export async function runRag(semanticQuery: string, topK = DEFAULT_RAG_TOP_K): P
   const matches = await retrieveNasa(semanticQuery.trim(), topK);
   const result = createRagResult(semanticQuery.trim(), matches);
 
-  console.info("[rag]", JSON.stringify({
+  console.info("\n[rag]", {
     semanticQuery: result.semanticQuery,
     retrievalMethod: result.retrievalMethod,
     matches: result.matches.map((match) => ({
@@ -40,7 +58,7 @@ export async function runRag(semanticQuery: string, topK = DEFAULT_RAG_TOP_K): P
       title: match.title,
       publishedAt: match.publishedAt,
     })),
-  }));
+  });
 
   return result;
 }

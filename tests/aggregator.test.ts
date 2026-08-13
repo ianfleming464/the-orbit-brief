@@ -41,4 +41,37 @@ describe("aggregator evidence contract", () => {
       kind: "answer", message: "There are 23 matching articles.", sources: [],
     });
   });
+
+  it("attaches SQL list cards without depending on model-selected IDs", () => {
+    const sqlResult: SqlResult = {
+      kind: "list",
+      articles: [{
+        id: "latest", title: "Latest story", source: "NASA", canonicalUrl: "https://www.nasa.gov/latest",
+        publishedAt: new Date("2026-08-11T00:00:00.000Z"),
+      }],
+      plan: { operation: "list", publishedFrom: null, publishedTo: null, source: null, titleQuery: null, limit: 5, sort: "newest" },
+    };
+    const evidence = buildAggregationEvidence({ question: "What is latest?", sqlResult });
+
+    expect(interpretAggregatedAnswer({ answer: "Here are the latest stories.", sufficientEvidence: true, sourceIds: [] }, evidence)).toEqual({
+      kind: "answer", message: "Here are the latest stories.", sources: [{
+        id: "latest", title: "Latest story", source: "NASA", canonicalUrl: "https://www.nasa.gov/latest",
+        publishedAt: "2026-08-11T00:00:00.000Z",
+      }],
+    });
+  });
+
+  it("requires a RAG citation when SQL metadata and RAG evidence are combined", () => {
+    const sqlResult: SqlResult = {
+      kind: "list",
+      articles: [{
+        id: "moon", title: "Moon Base Plans", source: "NASA", canonicalUrl: "https://www.nasa.gov/moon",
+        publishedAt: new Date("2026-08-11T00:00:00.000Z"),
+      }],
+      plan: { operation: "list", publishedFrom: null, publishedTo: null, source: null, titleQuery: null, limit: 5, sort: "newest" },
+    };
+    const evidence = buildAggregationEvidence({ question: "What about Moon Base?", sqlResult, ragResult });
+
+    expect(interpretAggregatedAnswer({ answer: "Maybe", sufficientEvidence: true, sourceIds: ["sql-1"] }, evidence).kind).toBe("no_result");
+  });
 });

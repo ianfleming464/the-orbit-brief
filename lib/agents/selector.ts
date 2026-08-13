@@ -135,13 +135,13 @@ export async function select(question: string, history: ChatMessage[] = []): Pro
   const parsed = selectorPlanSchema.parse(normalizedPlan);
   const plan = { ...parsed, route: routeForPlan(parsed) };
 
-  console.info("[selector]", JSON.stringify({
+  console.info("\n[selector]", {
     route: plan.route,
     useSql: plan.useSql,
     useRag: plan.useRag,
     reason: plan.reason,
     semanticQuery: plan.semanticQuery,
-  }));
+  });
 
   return plan;
 }

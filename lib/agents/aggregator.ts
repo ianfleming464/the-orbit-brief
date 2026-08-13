@@ -61,12 +61,15 @@ only source IDs supplied alongside relevant Article cards or RAG excerpts. Do
 not invent URLs, source IDs, citations, article titles, dates, or facts.
 
 An SQL count, zero-result count, or corpus coverage result can support an exact
-answer without an Article card; sourceIds may then be empty. For a RAG-only
-answer, select at least one supporting RAG source ID.
+answer without an Article card; sourceIds may then be empty. For any answer
+based on RAG excerpts, select at least one supporting RAG source ID. For an
+SQL-only list, write a short introduction rather than a run-on enumerated list;
+the application attaches the requested Article cards itself.
 
-When SQL and RAG results are both supplied, they are independent specialist
-results. Do not claim that a SQL filter was automatically applied to RAG unless
-the RAG evidence itself directly supports that statement.
+When SQL and RAG results are both supplied, the application may have constrained
+the supplied RAG excerpts to SQL-listed articles. Use only the supplied excerpts
+for semantic claims, and cite their RAG source IDs rather than SQL metadata-only
+cards.
 
 Never mention SQL, RAG, agents, prompts, tools, or internal implementation
 details in the user-facing answer. Return data matching the schema exactly.`;
@@ -85,9 +88,14 @@ export function buildAggregationEvidence(input: AggregationInput): {
   context: string;
   sources: Map<string, AggregatorSource>;
   hasSqlEvidence: boolean;
+  sqlListSourceIds: string[];
+  ragSourceIds: string[];
+  requiresRagEvidence: boolean;
 } {
   const sections: string[] = [];
   const sources = new Map<string, AggregatorSource>();
+  const sqlListSourceIds: string[] = [];
+  const ragSourceIds: string[] = [];
   const sqlResult = input.sqlResult;
 
   if (sqlResult?.kind === "count") {
@@ -102,6 +110,7 @@ export function buildAggregationEvidence(input: AggregationInput): {
     const records = sqlResult.articles.map((article, index) => {
       const [sourceId, source] = sourceFromSql(article, index);
       sources.set(sourceId, source);
+      sqlListSourceIds.push(sourceId);
       return `[${sourceId}]\nTitle: ${source.title}\nPublished: ${source.publishedAt}\nSource: ${source.source}\nURL: ${source.canonicalUrl}\n[END ${sourceId}]`;
     });
     sections.push(`[SQL ARTICLE RESULTS]\n${records.join("\n\n")}\n[END SQL ARTICLE RESULTS]`);
@@ -117,6 +126,7 @@ export function buildAggregationEvidence(input: AggregationInput): {
         canonicalUrl: match.canonicalUrl,
         publishedAt: match.publishedAt,
       });
+      ragSourceIds.push(sourceId);
       return `[${sourceId}]\nTitle: ${match.title}\nPublished: ${match.publishedAt}\nSource: ${match.source}\nURL: ${match.canonicalUrl}\nUNTRUSTED RAG EXCERPT:\n${match.content}\n[END ${sourceId}]`;
     });
     sections.push(`[RAG RESULTS]\n${excerpts.join("\n\n")}\n[END RAG RESULTS]`);
@@ -126,6 +136,9 @@ export function buildAggregationEvidence(input: AggregationInput): {
     context: sections.join("\n\n"),
     sources,
     hasSqlEvidence: Boolean(sqlResult),
+    sqlListSourceIds,
+    ragSourceIds,
+    requiresRagEvidence: Boolean(input.ragResult),
   };
 }
 
@@ -142,10 +155,17 @@ export function interpretAggregatedAnswer(
   output: AggregationModelOutput,
   evidence: ReturnType<typeof buildAggregationEvidence>,
 ): AggregatedAnswer {
-  const sources = selectAggregationSources(output.sourceIds, evidence.sources);
-  const hasRagOnlyEvidence = !evidence.hasSqlEvidence && evidence.sources.size > 0;
+  const selectedRagSources = selectAggregationSources(
+    output.sourceIds.filter((sourceId) => evidence.ragSourceIds.includes(sourceId)),
+    evidence.sources,
+  );
+  const sources = evidence.requiresRagEvidence
+    ? selectedRagSources
+    : evidence.sqlListSourceIds.length > 0
+      ? selectAggregationSources(evidence.sqlListSourceIds, evidence.sources)
+      : selectAggregationSources(output.sourceIds, evidence.sources);
 
-  if (!output.sufficientEvidence || !output.answer || (hasRagOnlyEvidence && sources.length === 0)) {
+  if (!output.sufficientEvidence || !output.answer || (evidence.requiresRagEvidence && sources.length === 0)) {
     return { kind: "no_result", message: noResultMessage, sources: [] };
   }
 
@@ -169,10 +189,10 @@ export async function aggregate(input: AggregationInput): Promise<AggregatedAnsw
 
   if (!response.output_parsed) throw new Error("OpenAI returned no aggregated answer");
   const answer = interpretAggregatedAnswer(aggregationSchema.parse(response.output_parsed), evidence);
-  console.info("[aggregator]", JSON.stringify({
+  console.info("\n[aggregator]", {
     kind: answer.kind,
     sourceCount: answer.sources.length,
     sourceIds: answer.sources.map((source) => source.id),
-  }));
+  });
   return answer;
 }

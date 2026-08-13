@@ -20,7 +20,7 @@ news and investigate topics using an indexed, trusted NASA corpus.
 | Checkpoint 4: inspectable semantic retrieval | Complete |
 | Checkpoint 5: grounded generated answers | Complete |
 | Selector / SQL-RAG / aggregator modules | Complete and chat-integrated |
-| Chat-route agent orchestration | Complete baseline; manual evaluation next |
+| Chat-route agent orchestration | Complete; first manual evaluation complete |
 | Allowlisted web-search fallback | Deferred until core workflow works |
 
 ## Verified corpus and index
@@ -42,9 +42,10 @@ multiple sentence-aware chunks.
   returns the answer and only server-validated source cards.
 - The browser retains at most six in-memory user/assistant messages for
   follow-ups. This context is not persisted as a transcript.
-- `BOTH` runs SQL and RAG concurrently. They are independent evidence sets:
-  the aggregator must not claim an SQL constraint was applied to Pinecone
-  retrieval. Hard vector metadata filters remain deferred.
+- `BOTH` runs SQL and RAG concurrently. SQL list results define the eligible
+  Article IDs; after broader retrieval, the app keeps only RAG chunks from
+  those Articles before aggregation. This enforces date/source constraints
+  without adding Pinecone metadata-filter configuration.
 - Terminal logs show the selector plan, SQL plan, RAG result summary, and
   aggregator source IDs, without raw article excerpts or secrets.
 - Asking a question never triggers ingestion; refresh is currently manual.
@@ -80,7 +81,7 @@ message. Retrieved text is labelled as untrusted reference data in the prompt.
 
 ## Immediate next objective
 
-Manually evaluate the integrated four-route workflow in the development UI:
+Use the completed first manual evaluation to make only targeted MVP fixes:
 
 ```text
 question → selector (SQL | RAG | BOTH | NEITHER, with reason)
@@ -88,10 +89,11 @@ question → selector (SQL | RAG | BOTH | NEITHER, with reason)
 → aggregator → source-linked answer
 ```
 
-Record the route, terminal trace, answer, and source cards for the SQL, RAG,
-BOTH, and NEITHER cases in `EVAL.md`. Pay particular attention to whether the
-cited sources support date-bound hybrid answers. The web-search fallback is a
-separate later `WEB` capability—not a hidden meaning of `NEITHER`.
+The first round is recorded in `EVAL.md`: SQL, RAG, BOTH, NEITHER, and a
+no-result case behaved correctly. A hybrid finding led to deterministic
+post-retrieval filtering, while SQL list answers now attach their known source
+cards. Reranking and Pinecone metadata filters remain deferred because this
+was a hard-constraint issue, not a ranking issue.
 
 The first workflow returns complete validated JSON with a truthful “Thinking…”
 state. Streaming the aggregator is a separate polish/demo checkpoint after the

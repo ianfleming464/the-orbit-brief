@@ -229,7 +229,7 @@ question → selector (SQL | RAG | BOTH | NEITHER, with reason)
 - Record a small route-evaluation set, including the examples in
   `AGENT-CONTEXT.md`, before expanding the architecture.
 
-Implementation evidence on August 12, 2026: the chat route validates a question
+Implementation evidence on August 12–13, 2026: the chat route validates a question
 plus at most six in-memory history messages, calls the selector, short-circuits
 clarification/NEITHER, and calls the selected specialists. SQL and RAG run via
 `Promise.all` only for BOTH; the aggregator returns the existing JSON answer
@@ -238,10 +238,14 @@ Moon Base RAG answer with four cards, a June + Moon Base BOTH answer with two
 June cards, and an out-of-corpus NEITHER boundary. Unit tests cover BOTH,
 NEITHER, invalid history, and selector contradiction handling.
 
-Important limitation: BOTH combines independent SQL and dense-vector evidence.
-The date wording is placed in the semantic query, but Pinecone is not yet
-hard-filtered by metadata. The aggregator must not claim a database filter was
-applied to retrieval. Evaluate this before adding metadata-filter support.
+The first manual evaluation exposed that a date phrase in a semantic query does
+not enforce a date constraint: Pinecone still returned May Moon Base chunks for
+a June question. The MVP correction is deterministic post-retrieval filtering:
+for a BOTH list result, retrieve 20 candidates, retain the first five whose
+`articleId` appears in SQL's eligible list, then aggregate only those excerpts.
+This is not reranking; it enforces a hard constraint while preserving vector
+order. A Pinecone metadata filter could move the same restriction into the
+database query later, but is not required for this small corpus.
 
 An allowlisted web-search specialist is a later extension for older or
 out-of-corpus questions. It must be explicit as `WEB` (with provenance), not a

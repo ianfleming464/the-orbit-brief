@@ -90,6 +90,22 @@ Rules:
   titleQuery null, even when the question also asks about that topic.
 - Return data matching the schema exactly.`;
 
+export const sqlPlanningExamples = `
+Examples:
+
+Question: How many articles are indexed from June?
+Plan: operation=count, publishedFrom=2026-06-01, publishedTo=2026-06-30,
+source=null, titleQuery=null, limit=10, sort=newest.
+
+Question: What did articles from June say about Moon Base?
+Plan: operation=list, publishedFrom=2026-06-01, publishedTo=2026-06-30,
+source=null, titleQuery=null, limit=10, sort=newest. “Moon Base” is a semantic
+topic for the RAG specialist, not a titleQuery.
+
+Question: What are the five most recent indexed stories?
+Plan: operation=list, publishedFrom=null, publishedTo=null, source=null,
+titleQuery=null, limit=5, sort=newest.`;
+
 export function startOfUtcDay(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`);
 }
@@ -121,7 +137,7 @@ export async function createArticleQueryPlan(
 ): Promise<ArticleQueryPlan> {
   const response = await openai.responses.parse({
     model: SQL_MODEL,
-    instructions: sqlInstructions,
+    instructions: `${sqlInstructions}${sqlPlanningExamples}`,
     input: `Current UTC date: ${now.toISOString().slice(0, 10)}\n\nConversation history:\n${formatConversationHistory(history)}\n\nUser question: ${question}`,
     text: { format: zodTextFormat(articleQueryPlanSchema, "orbit_brief_article_query_plan"), verbosity: "low" },
   });
@@ -135,7 +151,7 @@ export async function runSql(question: string, history: ChatMessage[] = []): Pro
   const plan = await createArticleQueryPlan(question, history, new OpenAI({ apiKey: env.OPENAI_API_KEY }));
   const where = buildArticleWhere(plan);
 
-  console.info("[sql]", JSON.stringify({
+  console.info("\n[sql]", {
     operation: plan.operation,
     publishedFrom: plan.publishedFrom,
     publishedTo: plan.publishedTo,
@@ -143,7 +159,7 @@ export async function runSql(question: string, history: ChatMessage[] = []): Pro
     titleQuery: plan.titleQuery,
     limit: plan.limit,
     sort: plan.sort,
-  }));
+  });
 
   if (plan.operation === "count") {
     return { kind: "count", count: await db.article.count({ where }), plan };

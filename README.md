@@ -52,9 +52,9 @@ messages. The selector produces a Zod-validated plan and terminal trace. The
 SQL specialist translates a Zod query plan into fixed Prisma calls; the RAG
 specialist returns ordered Pinecone evidence without reranking; the aggregator
 returns a grounded JSON answer with server-validated source cards. `BOTH` runs
-SQL and RAG concurrently, but does not yet apply SQL date/source constraints as
-Pinecone metadata filters; the aggregator is explicitly told not to imply that
-it did.
+SQL and RAG concurrently: SQL list results define eligible Article IDs, then
+the app keeps only retrieved chunks from those records before aggregation. This
+enforces date/source constraints without adding Pinecone metadata filters.
 
 The implementation uses a hosted PostgreSQL database through Prisma as the
 canonical Article store. `BACKFILL_DAYS` controls the manual RSS/archive window

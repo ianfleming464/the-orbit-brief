@@ -519,6 +519,39 @@ the reliable structure; paragraph restoration is deferred.
   claim a joined/filter-applied result. Evaluate this before adding filtering,
   reranking, or web search.
 
+## 2026-08-13 — Workflow terminal traces made inspectable
+
+- Replaced one-line JSON-string logs with labelled native objects for selector,
+  workflow, SQL, RAG, and aggregator stages. Node now lays out nested fields
+  and RAG matches across readable lines, matching the medical-RAG project's
+  development logging style.
+- This is presentation/debugging-only: the structured values, response shape,
+  routing, evidence handling, and privacy boundary are unchanged.
+
+## 2026-08-13 — First manual agent evaluation and hybrid constraint fix
+
+- Completed the SQL/RAG/BOTH/NEITHER manual evaluation in `EVAL.md`. Exact SQL
+  counts/lists, Moon Base and TEMPO RAG, corpus boundaries, and a no-result
+  case behaved as intended. TEMPO's relevant chunks ranked above unrelated
+  candidates, so this evidence does not justify reranking.
+- The June + Moon Base evaluation surfaced a real hard-constraint problem:
+  vector retrieval returned relevant May chunks despite the query saying June.
+  This is expected dense-search behavior—semantic wording is not a database
+  filter—not a reranking failure.
+- MVP decision: for BOTH requests that yield an SQL list, retrieve 20 Pinecone
+  candidates, deterministically retain only the first five whose `articleId`
+  is in SQL's eligible Article list, then send only those excerpts to the
+  aggregator. The retained order remains Pinecone's similarity order.
+- A concise few-shot set was added to the SQL planner after it once omitted the
+  explicit June dates in a hybrid request. It demonstrates correct date plans
+  and that semantic topics are not `titleQuery` values. The rerun produced the
+  intended June dates, retained five eligible chunks, and cited only June
+  source cards.
+- SQL list source cards are now attached deterministically by the application,
+  avoiding a run-on list without links and avoiding reliance on the aggregator
+  to select metadata-only citations. Pinecone metadata filters remain a later
+  optimization, not a requirement for the MVP.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
