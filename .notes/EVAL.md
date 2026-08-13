@@ -488,3 +488,43 @@ Logs:
 - SQL-only list results now attach their known Article cards in the application,
   even if the aggregator returns no IDs. This makes the recent-stories UI
   source-linked and avoids relying on the model for a deterministic list.
+
+Query:
+`Give me the most recent story you have`.
+
+Response:
+The most recent story is titled "NASA Shares Station Research Today Supporting Moon, Mars Tomorrow," published on August 11, 2026. It discusses how current research on the International Space Station is aiding future missions to the Moon and Mars.
+
+Logs:
+
+[selector] {
+  route: 'SQL',
+  useSql: true,
+  useRag: false,
+  reason: 'User requests the single most recent indexed story; this is a structured/latest-article query suited to the SQL article store.',
+  semanticQuery: null
+}
+
+[workflow] {
+  route: 'SQL',
+  useSql: true,
+  useRag: false,
+  reason: 'User requests the single most recent indexed story; this is a structured/latest-article query suited to the SQL article store.'
+}
+
+[sql] {
+  operation: 'list',
+  publishedFrom: null,
+  publishedTo: null,
+  source: null,
+  titleQuery: null,
+  limit: 1,
+  sort: 'newest'
+}
+
+[aggregator] {
+  kind: 'answer',
+  sourceCount: 1,
+  sourceIds: [ 'cmsorgo4d0000lxvb139sxkbj' ]
+}
+ POST /api/chat 200 in 8765ms
