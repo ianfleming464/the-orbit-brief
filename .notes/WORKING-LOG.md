@@ -568,6 +568,20 @@ the reliable structure; paragraph restoration is deferred.
   explicitly deferred until scale, latency, or evaluation evidence justifies
   it.
 
+## 2026-08-13 — Frontend MVP polish direction
+
+- Applied the `frontend-design` brief as a constrained polish pass, not a
+  product redesign. The visual model is a cool-paper star catalogue: deep
+  indigo ink for reading, muted slate for context, and a single dim instrument
+  amber signal. Newsreader is reserved for the masthead/answer; IBM Plex Sans
+  carries readable interface/body text; DM Mono remains the data voice.
+- The answer is now a distinct payload surface. Its citations are styled as
+  catalogue records with source, UTC date, a short record ID, title, and a
+  direct source link. This makes source grounding visible instead of implicit.
+- Replaced speculative starter prompts with four proven evaluation questions,
+  added a `Start new question` control that clears only browser memory and the
+  visible response, and made the current-index boundary/loading state explicit.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
