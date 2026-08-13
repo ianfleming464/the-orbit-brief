@@ -582,6 +582,25 @@ the reliable structure; paragraph restoration is deferred.
   added a `Start new question` control that clears only browser memory and the
   visible response, and made the current-index boundary/loading state explicit.
 
+## 2026-08-13 — Masthead and question rhythm refined
+
+- Screenshot review showed the masthead-to-question gap was oversized while
+  the `Ask the index` label sat too tightly against its question heading.
+  Increased the page's top breathing room, reduced the inter-section gap, and
+  added a deliberate label-to-heading separation. This keeps the masthead as
+  the display moment while making the question surface feel like its immediate
+  next action.
+
+## 2026-08-13 — Product-purpose copy clarified
+
+- Screenshot/UX review found that the previous masthead and question heading
+  looked polished but did not quickly explain the app's purpose. The new copy
+  names it as a space-news source index, promises source-linked answers, and
+  gives examples of supported questions (mission, topic, recent story).
+- This keeps the product source-neutral in public language while accurately
+  describing the current indexed-corpus boundary. The button now says `Search
+  the index`, matching the action the user is taking.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user

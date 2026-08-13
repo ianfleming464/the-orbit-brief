@@ -86,16 +86,16 @@ export function ChatShell() {
       <div className="section-heading chat-heading">
         <div>
           <p className="eyebrow">Ask the index</p>
-          <h2 id="question-heading">What should we look up?</h2>
+          <h2 id="question-heading">What do you want to know?</h2>
         </div>
-        <p className="chat-note">Answers are based on the currently indexed source corpus.</p>
+        <p className="chat-note">Answers cite the sources currently indexed here.</p>
       </div>
 
       <form className="question-form" onSubmit={handleSubmit}>
         <label htmlFor="question">Your question</label>
         <div className="question-row">
-          <input id="question" name="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask about recent space news" maxLength={300} disabled={isLoading} />
-          <button type="submit" disabled={isLoading || !question.trim()}>{isLoading ? "Searching…" : "Look up"}</button>
+          <input id="question" name="question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask about a mission, topic, or recent story" maxLength={300} disabled={isLoading} />
+          <button type="submit" disabled={isLoading || !question.trim()}>{isLoading ? "Searching…" : "Search the index"}</button>
         </div>
       </form>
 
