@@ -49,10 +49,34 @@ Metadata is useful for explicit constraints that semantic similarity must not
 guess. The relevant current fields are `publishedAt`, `source`, and `articleId`;
 future web results will also need provenance/source-type metadata.
 
-- Prefer SQL for exact counts, date listings, and source listings.
-- Use a Pinecone metadata filter when semantic RAG also needs a hard boundary,
-  for example: “What did articles from June say about Moon Base?”
-- Let the selector/SQL specialist produce a Zod-validated filter/query plan.
-  Do not infer a date, publisher, or topic that the user did not state.
-- Start with a single date-bound RAG experiment and compare filtered versus
-  unfiltered retrieval before generalising the feature.
+### Decision after the first agent evaluation: defer until after the demo
+
+The current BOTH flow is correct without a Pinecone filter: SQL identifies the
+eligible Article IDs, RAG retrieves 20 candidates, and the app retains only the
+first five chunks belonging to those Articles. This is deterministic,
+inspectable, tested, and adequate for the 204-vector MVP corpus.
+
+Pinecone supports metadata filters, including string `$in` for the existing
+`articleId` field. That means an ID-set filter could move the current constraint
+into the vector query without a reindex. It could reduce irrelevant candidates
+and become more valuable as the corpus grows. It does not add semantic quality;
+it only enforces eligibility earlier.
+
+Direct date-range filtering is more work. The current `publishedAt` metadata is
+an ISO string; Pinecone range operators require numeric values. It would require
+adding an explicit numeric publication timestamp to every chunk, re-upserting
+the whole index, extending the typed retrieval-filter contract, and adding
+integration tests. That is a reasonable future experiment, not a Thursday MVP
+change.
+
+Adopt a Pinecone filter only when one of these is true:
+
+- the SQL eligible set commonly exceeds the 20 retrieved candidates;
+- post-retrieval filtering causes demonstrable latency/cost problems;
+- the corpus is large enough that reduced candidate retrieval materially helps;
+- a measured evaluation shows a date/source constrained query still lacks
+  enough eligible evidence.
+
+Keep SQL for exact counts, date listings, and source listings. Any future
+filter must come from an explicit user constraint represented in the validated
+SQL/selector plan; never infer dates, publishers, or topics.

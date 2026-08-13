@@ -552,6 +552,22 @@ the reliable structure; paragraph restoration is deferred.
   to select metadata-only citations. Pinecone metadata filters remain a later
   optimization, not a requirement for the MVP.
 
+## 2026-08-13 — Pinecone metadata-filter cost/benefit decision
+
+- Confirmed that an `articleId` `$in` filter is feasible with existing Pinecone
+  metadata and could move the current SQL eligibility constraint into the
+  vector query. It offers earlier exclusion of irrelevant candidates, not
+  better semantic ranking.
+- Decision: do not add it before the demo. The 204-vector corpus and current
+  retrieve-20/retain-5 path are correct, tested, and easy to explain. Adding a
+  filter contract and integration cases now increases delivery risk without a
+  measured user benefit.
+- Direct Pinecone date-range filters would require a separate numeric timestamp
+  metadata field; current ISO date strings are not sufficient for numeric range
+  operators. That means re-preparing and re-upserting the full index, so it is
+  explicitly deferred until scale, latency, or evaluation evidence justifies
+  it.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user

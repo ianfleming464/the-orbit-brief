@@ -38,6 +38,8 @@ user question
   any retrieved chunk outside that set before aggregation. It retrieves 20
   candidates, then preserves the first five eligible chunks in vector order.
   This enforces user-stated dates/sources without Pinecone metadata filtering.
+  Pinecone `articleId` `$in` filtering remains a possible optimisation, while
+  direct date ranges would require adding numeric date metadata and reindexing.
 
 ## Current sequencing
 

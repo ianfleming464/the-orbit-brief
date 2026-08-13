@@ -105,8 +105,10 @@ source cards, and errors.
 - Agent-work progress/error UX and a full user-journey map.
 - A measured reranking experiment where baseline retrieval contains, but
   misorders, the expected source.
-- Explicit hard metadata filters for dates, source, and known article IDs;
-  SQL remains preferred for exact counts and listings.
+- A measured Pinecone metadata-filter experiment. `articleId` `$in` filtering
+  is feasible with current metadata; direct date ranges need a numeric
+  timestamp metadata field and a full re-upsert. SQL remains preferred for
+  exact counts and listings.
 
 Details and guardrails are in [possible-improvements.md](possible-improvements.md).
 
