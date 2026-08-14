@@ -652,6 +652,12 @@ the reliable structure; paragraph restoration is deferred.
   happening in space?” The existing “Ask the index” eyebrow already names the
   feature; the heading now acts as a clearer invitation without repeating it.
 
+## 2026-08-14 — Masthead headline responsive rule corrected
+
+- Removed the desktop `max-width` that could force “The Orbit Brief” onto two
+  lines at intermediate widths. The headline now stays on one line above the
+  680px mobile breakpoint and returns to normal wrapping on narrow screens.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
