@@ -646,6 +646,12 @@ the reliable structure; paragraph restoration is deferred.
   key. Focused route, aggregator, and retrieval tests, lint, and TypeScript
   checking passed after the change.
 
+## 2026-08-14 — Question-surface hierarchy refined
+
+- Changed the question heading from “What do you want to know?” to “What’s
+  happening in space?” The existing “Ask the index” eyebrow already names the
+  feature; the heading now acts as a clearer invitation without repeating it.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user

@@ -86,7 +86,7 @@ export function ChatShell() {
       <div className="section-heading chat-heading">
         <div>
           <p className="eyebrow">Ask the index</p>
-          <h2 id="question-heading">What do you want to know?</h2>
+          <h2 id="question-heading">What’s happening in space?</h2>
         </div>
         <p className="chat-note">Answers cite the sources currently indexed here.</p>
       </div>
