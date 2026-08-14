@@ -1,11 +1,11 @@
 import "dotenv/config";
 
 import { Pinecone } from "@pinecone-database/pinecone";
-import OpenAI from "openai";
 
 import { db } from "@/lib/db";
 import { getIndexingEnv } from "@/lib/env";
 import { ingestNasa } from "@/lib/ingest";
+import { getOpenAI } from "@/lib/openai";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/vector-index";
 import { syncChangedArticles } from "@/lib/vector-sync";
 
@@ -24,10 +24,9 @@ async function main() {
       throw new Error("Pinecone index must be a 1536-dimensional cosine index with a data-plane host");
     }
     const index = pinecone.index({ host: description.host });
-    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
     const vectorSync = await syncChangedArticles(ingestion.changedArticles, {
       embed: async (input) => {
-        const response = await openai.embeddings.create({
+        const response = await getOpenAI().embeddings.create({
           model: EMBEDDING_MODEL, dimensions: EMBEDDING_DIMENSIONS, input,
         });
         return {

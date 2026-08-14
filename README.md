@@ -56,6 +56,23 @@ SQL and RAG concurrently: SQL list results define eligible Article IDs, then
 the app keeps only retrieved chunks from those records before aggregation. This
 enforces date/source constraints without adding Pinecone metadata filters.
 
+### Optional LangSmith tracing
+
+The chat route records a workflow tree and wraps the shared OpenAI client.
+Stage nodes show route and result counts; nested OpenAI spans contain the full
+questions, history, prompts, retrieved excerpts, and model responses. Use it
+only in a private LangSmith project you are comfortable storing that data in.
+Add these local variables to `.env` only when you want tracing:
+
+```bash
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=your_key_here
+LANGSMITH_PROJECT=the-orbit-brief
+```
+
+Run one chat request and open the `the-orbit-brief` project in LangSmith. Leave
+`LANGSMITH_TRACING=false` for normal local use.
+
 The implementation uses a hosted PostgreSQL database through Prisma as the
 canonical Article store. `BACKFILL_DAYS` controls the manual RSS/archive window
 and `RETENTION_DAYS` controls optional cleanup. The RSS feed is a freshness

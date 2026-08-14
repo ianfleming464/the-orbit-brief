@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { formatConversationHistory, type ChatMessage } from "@/lib/agents/selector";
 import { db } from "@/lib/db";
-import { getIndexingEnv } from "@/lib/env";
+import { getOpenAI } from "@/lib/openai";
 
 export const SQL_MODEL = "gpt-5-mini";
 
@@ -147,8 +147,7 @@ export async function createArticleQueryPlan(
 }
 
 export async function runSql(question: string, history: ChatMessage[] = []): Promise<SqlResult> {
-  const env = getIndexingEnv();
-  const plan = await createArticleQueryPlan(question, history, new OpenAI({ apiKey: env.OPENAI_API_KEY }));
+  const plan = await createArticleQueryPlan(question, history, getOpenAI());
   const where = buildArticleWhere(plan);
 
   console.info("\n[sql]", {

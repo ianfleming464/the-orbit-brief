@@ -601,6 +601,51 @@ the reliable structure; paragraph restoration is deferred.
   describing the current indexed-corpus boundary. The button now says `Search
   the index`, matching the action the user is taking.
 
+## 2026-08-14 — Final smoke test and source-link presentation guard
+
+- Live smoke tests passed for the current SQL latest-story route, Moon Base
+  RAG, June + Moon Base BOTH, and an out-of-corpus NEITHER question. The BOTH
+  answer cited only June source records, confirming the deterministic
+  SQL-eligibility filter is active in the running app.
+- The latest-story model answer once duplicated a source as inline Markdown,
+  even though the UI already renders the validated catalogue source record.
+  Tightened the aggregator prompt to prohibit Markdown links, raw URLs, and
+  inline source labels in answer text. Provenance should remain in the designed
+  record stack, where the application validates it.
+
+## 2026-08-14 — Optional redacted LangSmith workflow tracing
+
+- Added the LangSmith SDK at the chat-workflow boundary, with a root trace and
+  nested selector, SQL, RAG, and aggregator stages. It does not alter routing,
+  evidence handling, response JSON, or UI behaviour.
+- Privacy decision: traces carry only question/history character or message
+  counts, route booleans, result counts, and final source count. They exclude
+  raw questions, conversation history, prompts, Pinecone excerpts, and answer
+  text. This makes the agent flow inspectable without creating a new prompt
+  retention path.
+- It is opt-in and safe to leave installed: tracing runs only when both
+  `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` are present. The project name
+  defaults to `the-orbit-brief` and can be overridden with `LANGSMITH_PROJECT`.
+- Focused chat-route/aggregator tests, lint, and TypeScript checking passed
+  with tracing disabled. A live LangSmith trace still needs the account API key
+  from the presenter, so that external verification remains manual.
+
+## 2026-08-14 — Full-payload LangSmith tracing aligned with Parsity
+
+- Replaced per-call OpenAI client construction with one lazy shared client
+  wrapped by LangSmith's `wrapOpenAI`, matching the Parsity medical-RAG
+  pattern. The selector, SQL planner, RAG embedding call, aggregator, and
+  embedding scripts now emit full OpenAI request/response spans when tracing is
+  enabled.
+- The root and named workflow stages remain concise summaries, while the nested
+  provider spans contain the actual question, history, prompts, retrieved
+  excerpts, and model output. This is better for a private learning/demo
+  project but changes the privacy boundary; use a private LangSmith project and
+  do not enable it for public traffic without a retention decision.
+- The shared client is lazy so importing agent helpers does not require an API
+  key. Focused route, aggregator, and retrieval tests, lint, and TypeScript
+  checking passed after the change.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user

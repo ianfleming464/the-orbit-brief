@@ -1,10 +1,10 @@
 import "dotenv/config";
 
 import { Pinecone } from "@pinecone-database/pinecone";
-import OpenAI from "openai";
 
 import { db } from "@/lib/db";
 import { getIndexingEnv } from "@/lib/env";
+import { getOpenAI } from "@/lib/openai";
 import { prepareIndexRecords } from "@/lib/indexing";
 import {
   batchRecords,
@@ -56,13 +56,12 @@ async function main() {
     },
   });
   const records = prepareIndexRecords(articles);
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
   const index = pinecone.index({ host: indexDescription.host });
   let embedded = 0;
   let promptTokens = 0;
 
   for (const batch of batchRecords(records)) {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: EMBEDDING_MODEL,
       dimensions: EMBEDDING_DIMENSIONS,
       input: batch.map((record) => record.embeddingText),

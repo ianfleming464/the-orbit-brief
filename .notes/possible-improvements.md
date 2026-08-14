@@ -21,6 +21,21 @@ should use structured stream events/SSE for text, stage changes, sources, and
 completion. Response headers are only suitable for small metadata known before
 the stream starts.
 
+## LangSmith observability and evaluation
+
+The MVP now has optional LangSmith tracing around each chat workflow. When
+`LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and optionally
+`LANGSMITH_PROJECT` are set, it records summary selector, SQL/RAG, and
+aggregator stages plus full nested OpenAI requests and responses. That includes
+questions, history, prompts, retrieval excerpts, and answer text, so keep the
+project private and choose a retention policy before public deployment.
+
+Use it first as an evaluation aid: compare selector route, SQL plan, retrieved
+match count, hybrid retention count in terminal logs, and final source count.
+Only create a LangSmith dataset after the manual evaluation questions and
+expected outcomes are stable. This avoids treating a changing prompt set as a
+benchmark.
+
 ## User journey map
 
 Document and test these core journeys before broad UI polish:

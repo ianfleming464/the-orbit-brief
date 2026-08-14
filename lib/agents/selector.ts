@@ -6,11 +6,10 @@
  * user-facing answer; those jobs belong to the later specialists/aggregator.
  */
 
-import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-import { getIndexingEnv } from "@/lib/env";
+import { getOpenAI } from "@/lib/openai";
 
 export const SELECTOR_MODEL = "gpt-5-mini";
 
@@ -117,8 +116,7 @@ export function formatConversationHistory(history: ChatMessage[]): string {
 }
 
 export async function select(question: string, history: ChatMessage[] = []): Promise<SelectorPlan> {
-  const env = getIndexingEnv();
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  const openai = getOpenAI();
   const response = await openai.responses.parse({
     model: SELECTOR_MODEL,
     instructions: selectorInstructions,

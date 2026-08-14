@@ -1,6 +1,6 @@
 # The Orbit Brief — Project Status
 
-**Last updated:** 2026-08-12
+**Last updated:** 2026-08-14
 **Use this page first** for the current project state. Use the working log for
 the supporting chronology and evidence.
 
@@ -21,6 +21,7 @@ news and investigate topics using an indexed, trusted NASA corpus.
 | Checkpoint 5: grounded generated answers | Complete |
 | Selector / SQL-RAG / aggregator modules | Complete and chat-integrated |
 | Chat-route agent orchestration | Complete; first manual evaluation complete |
+| Optional LangSmith workflow tracing | Complete; requires local key to activate |
 | Allowlisted web-search fallback | Deferred until core workflow works |
 
 ## Verified corpus and index
@@ -48,6 +49,11 @@ multiple sentence-aware chunks.
   without adding Pinecone metadata-filter configuration.
 - Terminal logs show the selector plan, SQL plan, RAG result summary, and
   aggregator source IDs, without raw article excerpts or secrets.
+- Optional LangSmith tracing records a workflow tree: summary stage nodes show
+  route and result counts, while nested OpenAI spans store full questions,
+  history, prompts, retrieved excerpts, and model responses. It stays disabled
+  until `LANGSMITH_TRACING=true` and a `LANGSMITH_API_KEY` are set. Use a
+  private project because trace payloads contain application data.
 - Asking a question never triggers ingestion; refresh is currently manual.
 
 ## Decisions that are currently locked for the MVP baseline
@@ -81,7 +87,12 @@ message. Retrieved text is labelled as untrusted reference data in the prompt.
 
 ## Immediate next objective
 
-Use the completed first manual evaluation to make only targeted MVP fixes:
+The final MVP smoke test passed on August 14. The live app returned the intended
+SQL-only, RAG-only, hybrid, and corpus-boundary responses. The aggregator now
+keeps links in the validated source-record stack instead of duplicating them in
+the answer text.
+
+For any final demo testing, use this path:
 
 ```text
 question → selector (SQL | RAG | BOTH | NEITHER, with reason)
@@ -96,9 +107,8 @@ cards. Reranking and Pinecone metadata filters remain deferred because this
 was a hard-constraint issue, not a ranking issue.
 
 The first workflow returns complete validated JSON with a truthful “Thinking…”
-state. Streaming the aggregator is a separate polish/demo checkpoint after the
-workflow is correct; it will require structured stream events for text, stages,
-source cards, and errors.
+state. Streaming stays a later checkpoint because it needs structured events
+for text, stages, source cards, and errors.
 
 ## Deferred product and learning backlog
 
@@ -109,6 +119,11 @@ source cards, and errors.
   is feasible with current metadata; direct date ranges need a numeric
   timestamp metadata field and a full re-upsert. SQL remains preferred for
   exact counts and listings.
+- An allowlisted web-search route for corpus misses, with explicit
+  `web_discovery` provenance and a decision about whether to ingest approved
+  discoveries.
+- Scheduled or operator-triggered feed ingestion with a visible freshness date.
+- LangSmith datasets and evaluations once the manual question set is stable.
 
 Details and guardrails are in [possible-improvements.md](possible-improvements.md).
 
@@ -121,6 +136,8 @@ Details and guardrails are in [possible-improvements.md](possible-improvements.m
 - [capstone-architecture-ux-decision-note.md](capstone-architecture-ux-decision-note.md)
   — discovery context and product/architecture questions; not a fixed spec.
 - [AGENT-CONTEXT.md](AGENT-CONTEXT.md) — deferred selector/RAG/SQL/web ideas.
+- [PRESENTATION-RUNBOOK.md](PRESENTATION-RUNBOOK.md) — five-minute demo flow,
+  decisions, and tested questions.
 - `next-session-prompt.md` — ignored personal handover for the next chat.
 
 ## Useful commands

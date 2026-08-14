@@ -528,3 +528,38 @@ Logs:
   sourceIds: [ 'cmsorgo4d0000lxvb139sxkbj' ]
 }
  POST /api/chat 200 in 8765ms
+
+### FINAL SMOKE TEST 2026-08-14
+
+The SQL count, Moon Base RAG, June + Moon Base BOTH, and France NEITHER
+questions from the final smoke pass are already recorded above. This adds the
+new source-link presentation check only.
+
+Query:
+`Give me the most recent story you have.`
+
+Response:
+
+```json
+{
+  "kind": "answer",
+  "message": "The most recent story is titled \"NASA Shares Station Research Today Supporting Moon, Mars Tomorrow,\" published on August 11, 2026. It discusses how current research on the International Space Station is aiding future missions to the Moon and Mars.",
+  "sources": [
+    {
+      "id": "cmsorgo4d0000lxvb139sxkbj",
+      "title": "NASA Shares Station Research Today Supporting Moon, Mars Tomorrow",
+      "source": "NASA",
+      "canonicalUrl": "https://www.nasa.gov/missions/station/iss-research/nasa-shares-station-research-today-supporting-moon-mars-tomorrow",
+      "publishedAt": "2026-08-11T14:00:00.000Z"
+    }
+  ]
+}
+```
+
+Logs:
+
+```text
+POST /api/chat 200 (live API smoke request)
+Source-link check: message contains no Markdown link or raw URL; the validated
+source record carries the canonical URL separately for the UI.
+```

@@ -1,7 +1,7 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import OpenAI from "openai";
 
 import { getIndexingEnv } from "@/lib/env";
+import { getOpenAI } from "@/lib/openai";
 import { toRetrievalMatches, type RetrievalMatch } from "@/lib/retrieval";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/vector-index";
 
@@ -14,8 +14,7 @@ export async function retrieveNasa(question: string, topK = 5): Promise<Retrieva
     throw new Error("Pinecone index must be a 1536-dimensional cosine index with a data-plane host");
   }
 
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-  const embedding = await openai.embeddings.create({
+  const embedding = await getOpenAI().embeddings.create({
     model: EMBEDDING_MODEL,
     dimensions: EMBEDDING_DIMENSIONS,
     input: question,

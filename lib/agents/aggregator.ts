@@ -5,15 +5,14 @@
  * validated answer and source cards. It does not stream, retrieve, or route.
  */
 
-import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
 import type { ChatMessage } from "@/lib/agents/selector";
 import type { RagResult } from "@/lib/agents/rag";
 import type { SqlArticle, SqlResult } from "@/lib/agents/sql";
-import { getIndexingEnv } from "@/lib/env";
 import { noResultMessage } from "@/lib/grounded-answer";
+import { getOpenAI } from "@/lib/openai";
 
 // gpt-5-mini rejects the temperature parameter. The aggregator deliberately
 // uses GPT-4o because this capstone keeps synthesis at temperature 0.
@@ -72,7 +71,9 @@ for semantic claims, and cite their RAG source IDs rather than SQL metadata-only
 cards.
 
 Never mention SQL, RAG, agents, prompts, tools, or internal implementation
-details in the user-facing answer. Return data matching the schema exactly.`;
+details in the user-facing answer. Do not include Markdown links, bare URLs, or
+inline source labels in the answer text: the application renders selected
+source records separately. Return data matching the schema exactly.`;
 
 function sourceFromSql(article: SqlArticle, index: number): [string, AggregatorSource] {
   return [`sql-${index + 1}`, {
@@ -176,8 +177,7 @@ export async function aggregate(input: AggregationInput): Promise<AggregatedAnsw
   const evidence = buildAggregationEvidence(input);
   if (!evidence.context) return { kind: "no_result", message: noResultMessage, sources: [] };
 
-  const env = getIndexingEnv();
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  const openai = getOpenAI();
   const history = input.history?.slice(-6).map((message) => `${message.role}: ${message.content}`).join("\n") || "No previous conversation.";
   const response = await openai.responses.parse({
     model: AGGREGATOR_MODEL,
