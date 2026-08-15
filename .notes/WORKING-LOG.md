@@ -658,6 +658,12 @@ the reliable structure; paragraph restoration is deferred.
   lines at intermediate widths. The headline now stays on one line above the
   680px mobile breakpoint and returns to normal wrapping on narrow screens.
 
+## 2026-08-15 — Presentation phone prompt card
+
+- Added `PRESENTATION-PHONE-NOTES.txt`, a plain-text companion to the full
+  runbook. It follows the requested demo, overview, learning, and Q&A shape,
+  with an abbreviated route for presenting while tired or short on time.
+
 ## 2026-08-11 — Agent-work UX and retrieval backlog recorded
 
 - Recorded future work for truthful “Thinking…”/stage and error UX, a user
